@@ -1,0 +1,19 @@
+{
+  "name": "rotary-connect-functions",
+  "version": "0.1.0",
+  "private": true,
+  "main": "lib/index.js",
+  "engines": { "node": "22" },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "serve": "npm run build && firebase emulators:start --only functions,firestore,auth"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.5.0",
+    "vitest": "^2.0.0"
+  }
+}

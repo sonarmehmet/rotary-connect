@@ -1,0 +1,37 @@
+# Gizli bilgiler — ASLA commit edilmez
+.env
+.env.*
+*.pem
+*.p12
+*.jks
+key.properties
+google-services.json
+GoogleService-Info.plist
+serviceAccount*.json
+.runtimeconfig.json
+
+# Flutter / Dart
+.dart_tool/
+.packages
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+pubspec.lock
+**/ios/Pods/
+**/android/.gradle/
+**/android/local.properties
+
+# Node
+node_modules/
+functions/lib/
+*.log
+
+# Firebase
+.firebase/
+firebase-debug.log
+.firebaserc
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store

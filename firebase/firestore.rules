@@ -1,0 +1,124 @@
+rules_version = '2';
+
+// Rotary Connect — Firestore güvenlik kuralları (Aşama 2 taslağı, en az ayrıcalık).
+// İlke: finansal koleksiyonlara istemci ASLA yazamaz; tüm yazmalar Cloud Functions
+// (Admin SDK, kuralları atlar) üzerinden yapılır. Rol: Auth custom claim `role`.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---------- Yardımcılar ----------
+    function signedIn() { return request.auth != null; }
+    function role() { return signedIn() ? request.auth.token.get('role', 'registered_user') : 'visitor'; }
+    function isOwner(uid) { return signedIn() && request.auth.uid == uid; }
+    function isSystemAdmin() { return role() == 'system_admin'; }
+    function isFinance() { return role() == 'finance_manager' || isSystemAdmin(); }
+    function isContent() { return role() == 'content_manager' || isSystemAdmin(); }
+    function unchanged(field) {
+      return request.resource.data.get(field, null) == resource.data.get(field, null);
+    }
+
+    // ---------- Kullanıcı profili ----------
+    // Rol bilgisi belgede tutulmaz (claim'de); kullanıcı kendi rolünü değiştiremez.
+    match /users/{uid} {
+      allow read: if isOwner(uid) || isSystemAdmin();
+      allow create: if isOwner(uid) && !('role' in request.resource.data);
+      allow update: if isOwner(uid)
+        && !('role' in request.resource.data)
+        && unchanged('email');
+      allow delete: if false; // hesap silme Functions üzerinden (KVKK süreci)
+    }
+
+    // ---------- Üyelik ve aidat (yalnızca okuma) ----------
+    match /club_members/{id} {
+      allow read: if isOwner(resource.data.userId) || isFinance() || isSystemAdmin();
+      allow write: if false;
+    }
+    match /membership_dues/{id} {
+      allow read: if isOwner(resource.data.userId) || isFinance();
+      allow write: if false;
+    }
+    match /membership_due_payments/{id} {
+      allow read: if isOwner(resource.data.userId) || isFinance();
+      allow write: if false;
+    }
+
+    // ---------- Bağış ----------
+    match /donation_campaigns/{id} {
+      allow read: if resource.data.status in ['active', 'completed'] || isContent() || isFinance();
+      // Doğrulanmış toplam tutarı yalnızca Functions günceller.
+      allow create: if (isContent() || isFinance())
+        && request.resource.data.get('verifiedTotalMinor', 0) == 0;
+      allow update: if (isContent() || isFinance()) && unchanged('verifiedTotalMinor');
+      allow delete: if false;
+    }
+    match /donations/{id} {
+      allow read: if isOwner(resource.data.get('userId', '')) || isFinance();
+      allow write: if false;
+    }
+
+    // ---------- Ödemeler ve iadeler (yalnızca okuma) ----------
+    match /payments/{id} {
+      allow read: if isOwner(resource.data.get('userId', '')) || isFinance();
+      allow write: if false;
+    }
+    match /refunds/{id} {
+      allow read: if isFinance();
+      allow write: if false;
+    }
+
+    // ---------- Etkinlikler ----------
+    match /events/{id} {
+      allow read: if resource.data.status == 'published' || isContent();
+      // Kontenjan sayaçlarını yalnızca Functions (transaction) değiştirir.
+      allow create: if isContent()
+        && request.resource.data.get('reservedCount', 0) == 0
+        && request.resource.data.get('confirmedCount', 0) == 0;
+      allow update: if isContent() && unchanged('reservedCount') && unchanged('confirmedCount');
+      allow delete: if false;
+    }
+    match /event_registrations/{id} {
+      allow read: if isOwner(resource.data.get('userId', '')) || isContent() || isFinance();
+      allow write: if false;
+    }
+
+    // ---------- İçerik ----------
+    match /projects/{id} {
+      allow read: if resource.data.status in ['ongoing', 'completed'] || isContent();
+      allow write: if isContent();
+    }
+    match /news/{id} {
+      allow read: if resource.data.get('published', false) == true || isContent();
+      allow write: if isContent();
+    }
+    match /announcements/{id} {
+      allow read: if resource.data.get('published', false) == true || isContent();
+      allow write: if isContent();
+    }
+
+    // ---------- Bildirimler ----------
+    match /notifications/{id} {
+      allow read: if isOwner(resource.data.get('userId', ''));
+      // Kullanıcı yalnızca "okundu" alanını değiştirebilir.
+      allow update: if isOwner(resource.data.get('userId', ''))
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read']);
+      allow create, delete: if false;
+    }
+
+    // ---------- Denetim kayıtları ----------
+    match /audit_logs/{id} {
+      allow read: if isSystemAdmin();
+      allow write: if false;
+    }
+
+    // ---------- Ayarlar ----------
+    match /app_settings/{id} {
+      allow read: if id == 'public' || isSystemAdmin();
+      allow write: if isSystemAdmin();
+    }
+
+    // Varsayılan: her şey kapalı.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

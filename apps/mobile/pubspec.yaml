@@ -1,0 +1,30 @@
+name: rotary_mobile
+description: Rotary Connect mobil uygulaması (Aşama 2 iskeleti).
+publish_to: none
+version: 0.1.0+1
+
+environment:
+  sdk: ">=3.4.0 <4.0.0"
+  flutter: ">=3.22.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  intl: any
+  flutter_riverpod: ^2.5.1
+  go_router: ">=14.0.0 <18.0.0"
+  rotary_shared:
+    path: ../../packages/shared
+  # Firebase paketleri Aşama 4'te eklenecek (firebase_core, firebase_auth,
+  # cloud_firestore, firebase_messaging, cloud_functions).
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
+  generate: false

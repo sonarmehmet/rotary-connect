@@ -1,0 +1,27 @@
+name: rotary_admin_web
+description: Rotary Connect web yönetim paneli (Flutter Web, Aşama 2 iskeleti).
+publish_to: none
+version: 0.1.0+1
+
+environment:
+  sdk: ">=3.4.0 <4.0.0"
+  flutter: ">=3.22.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  intl: any
+  flutter_riverpod: ^2.5.1
+  go_router: ">=14.0.0 <18.0.0"
+  rotary_shared:
+    path: ../../packages/shared
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true

@@ -1,0 +1,26 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    function role() { return request.auth != null ? request.auth.token.get('role', 'registered_user') : 'visitor'; }
+    function isContent() { return role() == 'content_manager' || role() == 'system_admin'; }
+
+    // Herkese açık görseller (kampanya, proje, haber, etkinlik).
+    match /public/{allPaths=**} {
+      allow read: if true;
+      allow write: if isContent()
+        && request.resource.size < 5 * 1024 * 1024
+        && request.resource.contentType.matches('image/(jpeg|png|webp)');
+    }
+
+    // Makbuzlar vb. yalnızca Functions (Admin SDK) tarafından yazılır; kullanıcı kendi klasörünü okur.
+    match /receipts/{uid}/{allPaths=**} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow write: if false;
+    }
+
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}
