@@ -54,7 +54,7 @@ Ayrıca `firebase/firestore.rules` emülatörle henüz test edilmedi (Aşama 10'
 
 | Hesap | Dal | Klasör/modül | Başlangıç |
 |---|---|---|---|
-| — | — | — | — |
+| B | b/admin-tables | apps/admin_web | 2026-10-29 |
 
 ## Değişiklik istekleri (şema/shared için Hesap A'ya)
 
