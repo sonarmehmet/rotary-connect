@@ -104,6 +104,12 @@ service cloud.firestore {
       allow create, delete: if false;
     }
 
+    // ---------- Önceden toplanmış raporlar (yalnızca Functions yazar) ----------
+    match /report_aggregates/{id} {
+      allow read: if isFinance();
+      allow write: if false;
+    }
+
     // ---------- Denetim kayıtları ----------
     match /audit_logs/{id} {
       allow read: if isSystemAdmin();

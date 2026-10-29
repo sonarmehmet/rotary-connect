@@ -56,6 +56,13 @@ Ayrıca `firebase/firestore.rules` emülatörle henüz test edilmedi (Aşama 10'
 |---|---|---|---|
 | — | — | — | — |
 
+## Değişiklik istekleri (şema/shared için Hesap A'ya)
+
+| Tarih | İsteyen | İstek | Durum |
+|---|---|---|---|
+| — | — | — | — |
+
 ## Oturum kayıtları
 
 - 2026-10-29 (hesap 1): Aşama 1 planı, Aşama 2 iskeleti, Firestore/Storage kuralları, functions çekirdeği.
+- 2026-10-29 (hesap 1): GitHub deposu bağlandı (sonarmehmet/rotary-connect). `DATA_MODEL.md` ve `TASKS.md` yazıldı; `report_aggregates` kuralı eklendi. Dalga 1 başlayabilir: A=mobil, B=admin, C=backend. Depo şu an public; iş bitince private yapılacak.

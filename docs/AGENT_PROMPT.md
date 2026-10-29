@@ -8,12 +8,12 @@ Rotary Connect projesinde çalışıyoruz. Depo: https://github.com/<KULLANICI>/
 Birden fazla Claude hesabı bu depoda sırayla çalışıyor; sohbet hafızası paylaşılmıyor, kaynak doğruluk depodur.
 
 BAŞLANGIÇ (zorunlu):
-1. Depoyu klonla/çek (git pull). docs/PROGRESS.md, docs/AGENT_PROMPT.md ve docs/DECISIONS.md dosyalarını oku.
-2. PROGRESS.md'deki "Sıradaki iş" bölümünden devam et. Onaylanmış kararları değiştirme.
+1. Depoyu klonla/çek (git pull). docs/PROGRESS.md, docs/TASKS.md, docs/DATA_MODEL.md ve docs/DECISIONS.md dosyalarını oku.
+2. Ben HESAP <A|B|C> HESABIYIM. Yalnızca TASKS.md'de bu hesaba verilen klasörlerde çalış; sıradaki dalgayı (PROGRESS.md "Sıradaki iş" + TASKS.md) takip et. Onaylanmış kararları değiştirme.
 3. Başka bir hesabın yarım bıraktığı işi önce tamamla; mevcut dosyaları izinsiz silme.
 
 ÇALIŞMA KURALLARI:
-- Kendine ait dal aç: stage<N>/<kisa-konu> (örn. stage3/mobile-home). main'e doğrudan itme; küçük, sık commit at.
+- Kendine ait dal aç: <hesap-harfi>/<kisa-konu> (örn. a/mobile-home, b/admin-tables, c/payments). Tamamlanan parçayı git pull --rebase origin main sonrası main'e al; küçük, sık commit at.
 - Aynı dosyayı iki hesap düzenlemesin: PROGRESS.md'deki "Kilitler" bölümüne hangi klasör/modül üzerinde çalıştığını yaz, push et, sonra başla.
 - Tutarlar kuruş cinsinden tam sayı; durum makinesi Dart (packages/shared) ve TS (functions) tarafında birebir aynı kalmalı. İstemci finansal koleksiyonlara yazamaz.
 - Gizli anahtar, google-services.json, .env commit etme.
