@@ -187,18 +187,39 @@ class FakeAdminRepository implements AdminRepository {
       throw const AdminException(
         'invalid-argument',
         'Tutar sıfırdan büyük olmalı.',
+        'invalid_amount',
       );
     }
-    if (_manualKeys.contains(request.idempotencyKey)) {
+    final note = request.note.trim();
+    if (note.length < 5) {
+      throw const AdminException(
+        'invalid-argument',
+        'Açıklama en az 5 karakter olmalı.',
+        'note_required',
+      );
+    }
+    final now = _clock();
+    if (request.receivedAt.isAfter(now)) {
+      throw const AdminException(
+        'invalid-argument',
+        'Ödeme tarihi gelecekte olamaz.',
+        'future_date',
+      );
+    }
+    // Sunucuyla aynı mükerrer anahtar: tür + kayıt + tutar + (UTC) gün.
+    final day = request.receivedAt.millisecondsSinceEpoch ~/ 86400000;
+    final key = 'manual:${request.kind.wireName}:${request.refId}:'
+        '${request.amountMinor}:$day';
+    if (_manualKeys.contains(key)) {
       throw const AdminException(
         'already-exists',
         'Bu manuel ödeme zaten kaydedilmiş.',
+        'duplicate_manual_payment',
       );
     }
     if (request.kind == PaymentKind.membershipDue) {
       _applyToDue(request);
     }
-    final now = _clock();
     final id = _nextId('pay');
     _payments.insert(
       0,
@@ -206,20 +227,21 @@ class FakeAdminRepository implements AdminRepository {
         id: id,
         kind: request.kind,
         refId: request.refId,
+        userId: request.userId,
         amountMinor: request.amountMinor,
         status: PaymentStatus.succeeded,
-        provider: 'simulation',
-        simulated: true,
-        idempotencyKey: request.idempotencyKey,
+        provider: 'manual',
+        simulated: false,
+        idempotencyKey: key,
         manual: true,
         recordedBy: 'usr_demo',
-        note: request.note,
+        note: note,
         createdAt: now,
         updatedAt: now,
-        succeededAt: now,
+        succeededAt: request.receivedAt,
       ),
     );
-    _manualKeys.add(request.idempotencyKey);
+    _manualKeys.add(key);
     _log(
       'payment.manual_record',
       'payment',
@@ -227,6 +249,7 @@ class FakeAdminRepository implements AdminRepository {
       after: {
         'amountMinor': request.amountMinor,
         'kind': request.kind.wireName,
+        'manual': true,
       },
     );
   }

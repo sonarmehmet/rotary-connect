@@ -530,22 +530,30 @@ class NewDuesRequest {
   final String? memberId;
 }
 
-/// `recordManualPayment`. `idempotencyKey` form açılırken üretilir; çift
-/// tıklama/yeniden deneme ikinci kayıt oluşturmaz (`already-exists`).
+/// `recordManualPayment` (yalnızca finans yöneticisi). Sunucu mükerrer kaydı
+/// (tür, kayıt, tutar, GÜN) bileşiminden tespit eder: aynı gün aynı tutar ikinci
+/// kez girilemez (`duplicate_manual_payment`). `receivedAt` gelecekte olamaz
+/// (`future_date`); not en az 5 karakter (`note_required`).
 class ManualPaymentRequest {
   const ManualPaymentRequest({
     required this.kind,
     required this.refId,
     required this.amountMinor,
     required this.note,
-    required this.idempotencyKey,
+    required this.receivedAt,
+    this.userId,
   });
 
   final PaymentKind kind;
   final String refId;
   final int amountMinor;
   final String note;
-  final String idempotencyKey;
+
+  /// Paranın alındığı an (UTC).
+  final DateTime receivedAt;
+
+  /// Ödemenin ait olduğu kullanıcı (kendi ödemesini görebilsin diye).
+  final String? userId;
 }
 
 /// `issueRefund`.

@@ -117,7 +117,7 @@ void main() {
       expect(logs.first.action, 'refund.issue');
     });
 
-    test('manuel ödeme mükerrer anahtarla ikinci kez kaydedilmez', () async {
+    test('manuel ödeme: aynı tür+kayıt+tutar+gün ikinci kez kaydedilmez', () async {
       final due = (await repo.listDues()).firstWhere(
         (d) => d.status == DueStatus.unpaid && d.allowPartial,
       );
@@ -125,18 +125,58 @@ void main() {
         kind: PaymentKind.membershipDue,
         refId: due.id,
         amountMinor: 10000,
-        note: 'havale',
-        idempotencyKey: 'k1',
+        note: 'havale dekont 1',
+        receivedAt: istanbulToInstant(2026, 10, 28),
       );
       await repo.recordManualPayment(request);
       await expectLater(
         repo.recordManualPayment(request),
-        throwsCode('already-exists'),
+        throwsA(
+          isA<AdminException>().having(
+            (e) => e.reason,
+            'reason',
+            'duplicate_manual_payment',
+          ),
+        ),
       );
       final updated =
           (await repo.listDues()).firstWhere((d) => d.id == due.id);
       expect(updated.paidMinor, 10000);
       expect(updated.status, DueStatus.partiallyPaid);
+    });
+
+    test('manuel ödeme: gelecek tarih ve kısa not reddedilir', () async {
+      final due = (await repo.listDues()).firstWhere(
+        (d) => d.status == DueStatus.unpaid,
+      );
+      await expectLater(
+        repo.recordManualPayment(
+          ManualPaymentRequest(
+            kind: PaymentKind.membershipDue,
+            refId: due.id,
+            amountMinor: 100,
+            note: 'yeterli not',
+            receivedAt: istanbulToInstant(2026, 11, 5),
+          ),
+        ),
+        throwsA(
+          isA<AdminException>().having((e) => e.reason, 'reason', 'future_date'),
+        ),
+      );
+      await expectLater(
+        repo.recordManualPayment(
+          ManualPaymentRequest(
+            kind: PaymentKind.membershipDue,
+            refId: due.id,
+            amountMinor: 100,
+            note: 'abc',
+            receivedAt: istanbulToInstant(2026, 10, 28),
+          ),
+        ),
+        throwsA(
+          isA<AdminException>().having((e) => e.reason, 'reason', 'note_required'),
+        ),
+      );
     });
 
     test('kısmi ödeme kapalıysa kalandan az ödeme reddedilir', () async {
@@ -149,8 +189,8 @@ void main() {
             kind: PaymentKind.membershipDue,
             refId: due.id,
             amountMinor: 100,
-            note: 'eksik',
-            idempotencyKey: 'k2',
+            note: 'eksik tutar',
+            receivedAt: istanbulToInstant(2026, 10, 28),
           ),
         ),
         throwsCode('failed-precondition'),
@@ -160,8 +200,8 @@ void main() {
           kind: PaymentKind.membershipDue,
           refId: due.id,
           amountMinor: due.remainingMinor,
-          note: 'tam',
-          idempotencyKey: 'k3',
+          note: 'tam ödeme',
+          receivedAt: istanbulToInstant(2026, 10, 28),
         ),
       );
       final updated =
@@ -179,8 +219,8 @@ void main() {
             kind: PaymentKind.membershipDue,
             refId: due.id,
             amountMinor: due.remainingMinor + 1,
-            note: 'fazla',
-            idempotencyKey: 'k4',
+            note: 'fazla tutar',
+            receivedAt: istanbulToInstant(2026, 10, 28),
           ),
         ),
         throwsCode('failed-precondition'),

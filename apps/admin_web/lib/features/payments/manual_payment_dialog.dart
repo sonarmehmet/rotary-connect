@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:rotary_shared/shared.dart';
@@ -21,6 +19,7 @@ class ManualPaymentDialog extends ConsumerStatefulWidget {
     required this.refLabel,
     this.suggestedMinor,
     this.maxMinor,
+    this.userId,
   });
 
   final PaymentKind kind;
@@ -31,6 +30,9 @@ class ManualPaymentDialog extends ConsumerStatefulWidget {
   /// Verilirse istemci bu tutarı aşan girişi uyarır (kesin kural sunucudadır).
   final int? maxMinor;
 
+  /// Ödemenin ait olduğu kullanıcı (aidat borcunda borçlu üye).
+  final String? userId;
+
   @override
   ConsumerState<ManualPaymentDialog> createState() =>
       _ManualPaymentDialogState();
@@ -40,7 +42,7 @@ class _ManualPaymentDialogState extends ConsumerState<ManualPaymentDialog> {
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _amount;
   final _note = TextEditingController();
-  late final String _key;
+  DateTime? _receivedAt;
   bool _saving = false;
   String? _error;
 
@@ -50,9 +52,6 @@ class _ManualPaymentDialogState extends ConsumerState<ManualPaymentDialog> {
     _amount = TextEditingController(
       text: widget.suggestedMinor == null ? '' : moneyInput(widget.suggestedMinor!),
     );
-    final rnd = Random.secure();
-    _key = 'manual_${DateTime.now().microsecondsSinceEpoch}_'
-        '${rnd.nextInt(1 << 32).toRadixString(16)}';
   }
 
   @override
@@ -66,7 +65,8 @@ class _ManualPaymentDialogState extends ConsumerState<ManualPaymentDialog> {
     if (_saving) return;
     if (!(_formKey.currentState?.validate() ?? false)) return;
     final amount = Money.tryParseTr(_amount.text);
-    if (amount == null) return;
+    final received = _receivedAt;
+    if (amount == null || received == null) return;
     final max = widget.maxMinor;
     if (max != null && amount.minor > max) {
       setState(() => _error = 'Tutar kalan borcu (${moneyText(max)}) aşamaz.');
@@ -83,7 +83,8 @@ class _ManualPaymentDialogState extends ConsumerState<ManualPaymentDialog> {
               refId: widget.refId,
               amountMinor: amount.minor,
               note: _note.text.trim(),
-              idempotencyKey: _key,
+              receivedAt: received,
+              userId: widget.userId,
             ),
           );
       invalidateFinance(ref);
@@ -132,14 +133,21 @@ class _ManualPaymentDialogState extends ConsumerState<ManualPaymentDialog> {
               ),
             ),
             fieldPad(
+              DateFormField(
+                label: 'Paranın alındığı tarih',
+                initialValue: _receivedAt,
+                onChanged: (v) => _receivedAt = v,
+              ),
+            ),
+            fieldPad(
               TextFormField(
                 controller: _note,
                 decoration: fieldDecoration(
                   'Not',
-                  helper: 'Örn. havale tarihi / dekont no (kişisel veri yazmayın)',
+                  helper: 'En az 5 karakter. Örn. dekont no (kişisel veri yazmayın)',
                 ),
                 maxLines: 2,
-                validator: requiredText(min: 3, max: 300),
+                validator: requiredText(min: 5, max: 500),
               ),
             ),
             if (_error != null)

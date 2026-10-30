@@ -142,6 +142,7 @@ class DuesPage extends ConsumerWidget {
                 builder: (_) => ManualPaymentDialog(
                   kind: PaymentKind.membershipDue,
                   refId: d.id,
+                  userId: d.userId,
                   refLabel: '${d.userName} — ${d.periodLabel}',
                   suggestedMinor: d.remainingMinor,
                   maxMinor: d.remainingMinor,

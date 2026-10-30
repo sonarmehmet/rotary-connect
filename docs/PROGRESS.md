@@ -57,6 +57,8 @@ Yazıldı (`apps/admin_web/lib`): `core/` (biçim/İstanbul saati, Türkçe aram
 - Bildirimler eklendi: `sendAnnouncement` sözleşmesine göre (hedef kitle all/members/role, başlık ≤80, metin ≤300, sabit rota listesi, idempotency `clientKey`; başarıda yeni anahtar, hatada AYNI anahtar). Hassas içerik (tutar/e-posta/telefon) istemcide de uyarılır (`core/sensitive.dart` = sunucu regex'leri; sunucu kesin denetler).
 - Hata eşleme: `AdminException(code, message, reason)`; `reasonMessagesTr` sunucudaki tüm `reason` değerlerini Türkçe'ye çevirir. Gerçek Firebase deposu, `HttpsError.details.reason`'ı bu alana taşımalıdır.
 - Tüm 16 modül uygulanmış durumda (placeholder kalmadı).
+- Manuel ödeme sunucu sözleşmesine uyduruldu: `receivedAt` zorunlu ve gelecekte olamaz (`future_date`), not ≥5 karakter (`note_required`), mükerrer = aynı tür+kayıt+tutar+gün (`duplicate_manual_payment`; istemci anahtarı YOK), `userId` iletilir, yalnızca finans yöneticisi.
+- `lib/data/remote/`: `CallableClient` arayüzü (Firebase'siz), `callableErrorToException` (reason'ı `details`'ten taşır, bilinmeyen kod `internal` + ham mesaj gösterilmez), `AdminCallables` (şu an `sendAnnouncement`, `recordManualPayment`; diğerleri sunucuda yazılınca eklenecek). Test: `test/callables_test.dart`.
 
 **Dalga 2 için notlar (B → kendim / C):**
 - `report_aggregates` gerçekte GÜNLÜK satır (`day`) ve SİMÜLASYON ödemelerini DIŞLAR (`functions/src/reports/aggregates.ts`); panelin örnek `ReportAggregate` modeli aylık `period` kullanıyor ve örnek verideki simülasyon ödemelerini sayıyor. Gerçek depoda günleri aya toplayıp modele çevir; simülasyon modunda raporların boş çıkması beklenen davranıştır (arayüzde bunu açıkla).
@@ -72,7 +74,6 @@ Yazıldı (`apps/admin_web/lib`): `core/` (biçim/İstanbul saati, Türkçe aram
 
 | Hesap | Dal | Klasör/modül | Başlangıç |
 |---|---|---|---|
-| B | b/admin-callables | apps/admin_web (manuel ödeme sözleşme uyumu, callable istemci katmanı) | 2026-10-30 |
 | C | c/backend-core | functions, firebase, tests | 2026-10-29 |
 
 ## Değişiklik istekleri (şema/shared için Hesap A'ya)
@@ -100,3 +101,4 @@ Yazıldı (`apps/admin_web/lib`): `core/` (biçim/İstanbul saati, Türkçe aram
 - 2026-10-30 (hesap B, 3. oturum): Uygulama Ayarları ekranı + sahte depo doğrulaması + testler. DOĞRULANMAMIŞ (Flutter yok). Kalan: Bildirimler (sözleşme bekliyor), kullanıcı makinesinde analyze/test, Dalga 2.
 - 2026-10-30 (hesap B, 4. oturum): Statik tarama: sistem yöneticisinin `viewFinancialReports` izni olmadığı için Genel Bakış testleri finans rolüne çekildi; Genel Bakış izni olmayan roller ('/' açılışında) ilk erişebildikleri modüle yönlendirilir (+test). DOĞRULANMAMIŞ (Flutter yok).
 - 2026-10-30 (hesap B, 5. oturum): Bildirimler ekranı (`sendAnnouncement`), hata `reason` → Türkçe eşlemesi, hassas içerik denetimi + testler. DOĞRULANMAMIŞ (Flutter yok). Sıradaki (B): kullanıcı makinesinde analyze/test düzeltmeleri; ardından Firebase istemci bağlantısı (Dalga 2: `FirebaseAdminRepository`, claim'den rol, giriş ekranı).
+- 2026-10-30 (hesap B, 6. oturum): Manuel ödeme sunucu sözleşmesine uyduruldu (receivedAt/userId/not≥5, idempotencyKey kalktı), callable istemci katmanı + testler, C'ye eksik callable isteği. DOĞRULANMAMIŞ (Flutter yok). Sıradaki (B): ağ erişimli makinede `cloud_functions`/`firebase_auth`/`cloud_firestore` ekleyip `FirebaseCallableClient`, `FirebaseAdminRepository` (okumalar Firestore), giriş ekranı ve claim'den rol.
