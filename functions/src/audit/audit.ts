@@ -8,7 +8,8 @@ export type AuditAction =
   | "due.cancel"
   | "event.cancel"
   | "export.financial"
-  | "settings.update";
+  | "settings.update"
+  | "announcement.send";
 
 export interface AuditEntry {
   readonly actorId: string;

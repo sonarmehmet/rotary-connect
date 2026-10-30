@@ -100,6 +100,7 @@ Günlük/aylık önceden toplanmış tutarlar: `period`, `kind`, `collectedMinor
 | `getDonationReceipt` | kullanıcı/misafir | makbuz/ödeme belgesi |
 | `exportReport` | finance | yetki + audit + CSV |
 | `requestAccountDeletion` | kullanıcı | KVKK silme süreci |
+| `sendAnnouncement` | content_manager / system_admin | `audience` {`all`\|`members`\|`role`+rol}, `title` ≤80, `body` ≤300 (tutar/e-posta/telefon İÇEREMEZ, sunucu reddeder: `sensitive_content`), `route` ∈ {/news,/events,/projects,/donate,/profile}, `clientKey` (8–64, `[A-Za-z0-9_-]`). İdempotent: bildirim kimliği `{uid}_{clientKey}_{alıcı}`, tekrar çağrı çift bildirim üretmez. `notifications` belgeleri üretir, duyuru tercihi kapalı olanları atlar, `audit_logs`'a yazar. Dönüş: `{recipients, sent, skippedByPreferences}` |
 
 ## Gerekli bileşik indeksler
 Bkz. `firebase/firestore.indexes.json`. Yeni sorgu eklenirse indeks aynı commit'e eklenir.

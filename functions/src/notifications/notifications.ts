@@ -102,3 +102,23 @@ export function dueReminderDue(
   const windowStart = dueDateMs - daysBefore * 86_400_000;
   return nowMs >= windowStart && nowMs <= dueDateMs;
 }
+
+/** Yönetici duyurusu: başlık/gövde yöneticiden gelir (içerik denetimi handlers/announce.ts'te). */
+export function buildAnnouncementNotification(input: {
+  userId: string;
+  title: string;
+  body: string;
+  route: string;
+  refId: string;
+  nowMs: number;
+}): NotificationDoc {
+  return {
+    userId: input.userId,
+    type: "announcement",
+    title: input.title,
+    body: input.body,
+    data: { route: input.route, refId: input.refId },
+    read: false,
+    createdAtMs: input.nowMs,
+  };
+}
