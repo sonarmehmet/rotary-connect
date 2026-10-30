@@ -162,8 +162,12 @@ class _KindCard extends StatelessWidget {
   Widget _line(String label, String value) => Padding(
         padding: const EdgeInsets.only(bottom: 4),
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [Text(label), Text(value)],
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(child: Text(label)),
+            const SizedBox(width: 12),
+            Flexible(child: Text(value, textAlign: TextAlign.end)),
+          ],
         ),
       );
 }
