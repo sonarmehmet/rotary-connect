@@ -11,7 +11,6 @@ import '../../features/dues/presentation/dues_screen.dart';
 import '../../features/events/presentation/events_screen.dart';
 import '../../features/news/presentation/news_screen.dart';
 import '../../features/notifications/presentation/notification_settings_screen.dart';
-import '../../features/notifications/presentation/notification_settings_screen.dart';
 import '../../features/notifications/presentation/notifications_screen.dart';
 import '../../features/profile/presentation/profile_screen.dart';
 import '../../features/projects/presentation/projects_screen.dart';
@@ -29,7 +28,6 @@ abstract final class Routes {
   static const dues = '/dues';
   static const profile = '/profile';
   static const notifications = '/notifications';
-  static const notificationSettings = '/notification-settings';
   static const notificationSettings = '/notification-settings';
   static const login = '/login';
   static const register = '/register';
@@ -81,7 +79,6 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: Routes.news,
         builder: (_, __) => const NewsScreen(),
       ),
-      GoRoute(path: Routes.notificationSettings, builder: (_, __) => const NotificationSettingsScreen()),
       GoRoute(path: Routes.notificationSettings, builder: (_, __) => const NotificationSettingsScreen()),
       GoRoute(path: Routes.notifications, builder: (_, __) => const NotificationsScreen()),
       GoRoute(

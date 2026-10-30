@@ -159,19 +159,3 @@ class NotificationPrefs {
         announcements: announcements ?? this.announcements,
       );
 }
-
-/// Bildirim tercihleri. Ödeme sonucu ve makbuz gibi işlemsel bildirimler kapatılamaz.
-class NotificationPrefs {
-  const NotificationPrefs({this.events = true, this.dues = true, this.donations = true, this.announcements = true});
-  final bool events;
-  final bool dues;
-  final bool donations;
-  final bool announcements;
-
-  NotificationPrefs copyWith({bool? events, bool? dues, bool? donations, bool? announcements}) => NotificationPrefs(
-        events: events ?? this.events,
-        dues: dues ?? this.dues,
-        donations: donations ?? this.donations,
-        announcements: announcements ?? this.announcements,
-      );
-}
