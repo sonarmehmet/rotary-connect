@@ -54,3 +54,7 @@ export { handleProviderEvent, sweepEffects } from "./payments/pipeline";
 export type { PipelineResult, SucceededPaymentSource, SweepReport } from "./payments/pipeline";
 export { startDuePaymentHandler, startEventFeePaymentHandler } from "./handlers/payHandlers";
 export type { DueReader, RegistrationReader, PayHandlerDeps, PayResult } from "./handlers/payHandlers";
+export { getDonationReceiptHandler, requestAccountDeletionHandler } from "./handlers/userHandlers";
+export type { Receipt, ReceiptReader, ReceiptRow, DeletionDeps, DeletionFacts, DeletionRequestSink } from "./handlers/userHandlers";
+export { runExpireReservations, runDueMaintenance, runReconcile } from "./jobs/scheduled";
+export type { OpenEventSource, DueSource, DueSink, DueRow, ExpireReport, DueJobReport } from "./jobs/scheduled";

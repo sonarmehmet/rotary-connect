@@ -89,6 +89,14 @@ class EventDetailScreen extends ConsumerWidget {
             const SizedBox(height: Gaps.sm),
             Text(statusLabel(e), style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: Gaps.md),
+            if (e.myStatus == RegistrationStatus.reserved)
+              Padding(
+                padding: const EdgeInsets.only(bottom: Gaps.sm),
+                child: FilledButton(
+                  onPressed: () => _act(ref, () => repo.payEventFee(e.id)),
+                  child: Text('Öde (${e.fee.format()})'),
+                ),
+              ),
             if (!active)
               FilledButton(
                 onPressed: () => _act(ref, () => repo.registerForEvent(e.id)),

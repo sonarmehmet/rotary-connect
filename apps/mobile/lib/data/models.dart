@@ -123,3 +123,22 @@ class UserProfile {
   final String email;
   final AppRole role;
 }
+
+class AppNotification {
+  const AppNotification({
+    required this.id,
+    required this.title,
+    required this.body,
+    required this.route,
+    required this.createdAt,
+    required this.read,
+  });
+  final String id;
+  final String title;
+  final String body;
+  final String route;
+  final DateTime createdAt;
+  final bool read;
+
+  AppNotification asRead() => AppNotification(id: id, title: title, body: body, route: route, createdAt: createdAt, read: true);
+}

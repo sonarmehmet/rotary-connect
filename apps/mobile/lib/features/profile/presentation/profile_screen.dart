@@ -29,6 +29,7 @@ class ProfileScreen extends ConsumerWidget {
               ListTile(leading: const Icon(Icons.person), title: Text(user.name), subtitle: Text(user.email)),
               if (role.can(Permission.viewOwnDues))
                 ListTile(leading: const Icon(Icons.receipt_long_outlined), title: const Text('Aidat ve Ödemelerim'), onTap: () => context.go(Routes.dues)),
+              ListTile(leading: const Icon(Icons.notifications_outlined), title: const Text('Bildirimlerim'), onTap: () => context.go(Routes.notifications)),
               ListTile(leading: const Icon(Icons.newspaper_outlined), title: const Text('Haberler ve Duyurular'), onTap: () => context.go(Routes.news)),
               ListTile(
                 leading: const Icon(Icons.delete_outline),

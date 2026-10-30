@@ -9,6 +9,7 @@ final campaignsProvider = FutureProvider<List<Campaign>>((ref) => ref.watch(repo
 final eventsProvider = FutureProvider<List<EventItem>>((ref) => ref.watch(repositoryProvider).events());
 final projectsProvider = FutureProvider<List<Project>>((ref) => ref.watch(repositoryProvider).projects());
 final newsProvider = FutureProvider<List<NewsItem>>((ref) => ref.watch(repositoryProvider).news());
+final notificationsProvider = FutureProvider<List<AppNotification>>((ref) => ref.watch(repositoryProvider).notifications());
 final duesProvider = FutureProvider<List<DueItem>>((ref) => ref.watch(repositoryProvider).myDues());
 
 /// Oturumdaki kullanıcı; null = ziyaretçi. Rol, yönlendirme için [currentRoleProvider]'a yansıtılır.

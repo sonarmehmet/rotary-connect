@@ -11,7 +11,7 @@ Her hesap işini bitirince kendi bölümünü işaretler.
 - [x] Etkinlikler (kart, detay, kayıt formu, onay)
 - [x] Aidat ekranı (borçlar, geçmiş)
 - [x] Giriş / kayıt formları (şifre sıfırlama yalnızca mesaj, Aşama 4)
-- [x] Profil (KVKK silme talebi yalnızca iletişim kutusu; bildirim tercihleri ve bildirim listesi YOK)
+- [x] Profil (KVKK silme talebi yalnızca iletişim kutusu; bildirim tercih ekranı YOK)
 - [x] Yükleniyor / boş / hata / başarı bileşenleri
 - [x] Sahte repository'ler (örnek veri)
 - [ ] Firebase bağlantısı (Aşama 4, ağ gerekir)
@@ -25,18 +25,18 @@ Her hesap işini bitirince kendi bölümünü işaretler.
 
 ## Backend (Hesap C) — functions
 Callable sözleşmesi (DATA_MODEL.md) — "mantık" = test edilmiş iş kuralı, "sarmalayıcı" = Firebase `onCall`/HTTP bağlantısı (HİÇBİRİ yok):
-- [x] requestMembership (mantık)       - [x] approveMembership (mantık)     - [ ] assignRole
+- [x] requestMembership (mantık)       - [x] approveMembership (mantık)     - [x] assignRole (B: adminOps)
 - [x] assignDues (mantık)              - [x] startPayment (mantık; bağış işleyicisi var, aidat/etkinlik işleyicisi yok)
 - [x] paymentWebhook (mantık; sağlayıcıya özel imza yok)   - [x] reconcilePending (mantık)
 - [x] recordManualPayment (mantık + işleyici)   - [x] issueRefund (B: adminOps; simülasyon ödemesi, gerçek sağlayıcı iadesi henüz yok)
 - [x] reserveEventSpot (mantık + işleyici)      - [x] cancelRegistration (mantık + işleyici)
-- [x] expireReservations (mantık)      - [ ] getDonationReceipt   - [ ] exportReport
-- [x] requestAccountDeletion (yalnızca plan)    - [x] sendAnnouncement (mantık + işleyici)
+- [x] expireReservations (mantık)      - [x] getDonationReceipt (mantık + işleyici)   - [x] exportReport (B: adminOps)
+- [x] requestAccountDeletion (talep işleyicisi; gerçek silme/anonimleştirme yürütücüsü YOK)    - [x] sendAnnouncement (mantık + işleyici)
 - [x] Ödeme sonucu etkileri (borç, bağış, kampanya toplamı, etkinlik kaydı, bildirim)
 - [x] Firestore adaptörleri (etkinlik, ödeme, ödeme etkileri; sahte Firestore ile test)
 - [x] startDuePayment / startEventFeePayment işleyicileri, webhook→etkiler akışı (`pipeline.ts`), etki tarama (`sweepEffects`)
 - [ ] firebase-admin SDK sarmalayıcısı (`adapters/sdk.ts`)       - [ ] onCall/HTTP sarmalayıcıları (`src/handlers` → Firebase)
-- [ ] Zamanlanmış işler (mutabakat, rezervasyon süresi, aidat gecikmesi/hatırlatma)
+- [x] Zamanlanmış iş gövdeleri (`jobs/scheduled.ts`: rezervasyon süresi, aidat gecikme/hatırlatma, mutabakat); `onSchedule` bağlantısı YOK
 - [ ] Firestore kuralları emülatör testleri (`tests/rules/`)
 
 ## Ortak

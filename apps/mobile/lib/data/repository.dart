@@ -19,6 +19,12 @@ abstract class AppRepository {
   /// Yer ayırır; ücretli etkinlikte ödeme ayrı adımdır. Doluysa bekleme listesine alır.
   Future<EventItem> registerForEvent(String eventId);
   Future<EventItem> cancelEventRegistration(String eventId);
+
+  /// Ayrılmış yer için etkinlik ücretini öder (sunucu tutarı kayıttan çözer). Simülasyonda anında onaylanır.
+  Future<EventItem> payEventFee(String eventId);
+
+  Future<List<AppNotification>> notifications();
+  Future<void> markNotificationRead(String id);
 }
 
 /// Örnek veriyle çalışan bellek içi uygulama (Aşama 3). Veriler TEST VERİSİDİR.
@@ -27,6 +33,7 @@ class FakeAppRepository implements AppRepository {
   final DateTime _now;
   final Map<String, RegistrationStatus> _reg = {};
   final Map<String, DonationResult> _byKey = {};
+  final Set<String> _readNotes = {};
 
   @override
   Future<List<Campaign>> campaigns() async => [
@@ -131,6 +138,24 @@ class FakeAppRepository implements AppRepository {
     _reg.remove(eventId);
     return (await events()).firstWhere((x) => x.id == eventId);
   }
+
+  @override
+  Future<EventItem> payEventFee(String eventId) async {
+    if (_reg[eventId] != RegistrationStatus.reserved) {
+      throw StateError('Ödenecek bir rezervasyon yok');
+    }
+    _reg[eventId] = RegistrationStatus.confirmed;
+    return (await events()).firstWhere((x) => x.id == eventId);
+  }
+
+  @override
+  Future<List<AppNotification>> notifications() async => [
+        AppNotification(id: 'nt1', title: 'Aidat hatırlatması', body: 'Aidat son ödeme tarihiniz yaklaşıyor.', route: '/dues', createdAt: _now.subtract(const Duration(days: 1)), read: _readNotes.contains('nt1')),
+        AppNotification(id: 'nt2', title: 'Etkinlik kaydı', body: 'Kaydınız onaylandı.', route: '/events', createdAt: _now.subtract(const Duration(days: 3)), read: _readNotes.contains('nt2')),
+      ];
+
+  @override
+  Future<void> markNotificationRead(String id) async => _readNotes.add(id);
 }
 
 final repositoryProvider = Provider<AppRepository>((ref) => FakeAppRepository());

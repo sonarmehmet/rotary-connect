@@ -84,6 +84,8 @@ Yazıldı (`apps/admin_web/lib`): `core/` (biçim/İstanbul saati, Türkçe aram
 
 ## Oturum kayıtları
 
+- 2026-10-30 (hesap C, 3): `getDonationReceiptHandler` (sahip veya misafir bağış no + e-posta; yoksa/yanlışsa aynı hata), `requestAccountDeletionHandler` (engel varsa reddeder, talep idempotent, denetim yazar; gerçek anonimleştirme/Auth silme yürütücüsü HENÜZ YOK), `jobs/scheduled.ts` (runExpireReservations, runDueMaintenance, runReconcile). Mobil: bildirim listesi ve ücretli etkinlikte ödeme adımı. Backend 198 test geçti (yerel çatı). Flutter DOĞRULANMAMIŞ.
+
 - 2026-10-30 (hesap C, 2): Bağış Kayıtları admin ekranı (anonim gizleme, e-posta maskeleme). Backend: `FirestoreEffectsTxRunner` (koleksiyon `effect_markers` yalnızca sunucu; kurallar varsayılan kapalı), `handleProviderEvent` (webhook→etkiler), `sweepEffects` (zamanlanmış tarama kaynağı `SucceededPaymentSource` Firestore'da `status==succeeded` sorgusuyla yazılmalı), `startDuePaymentHandler`/`startEventFeePaymentHandler` (okuyucular `DueReader`/`RegistrationReader` Firestore'da yazılmalı). Yerel test çatısında 188 backend testi geçti. Flutter kodu DOĞRULANMAMIŞ.
 
 - 2026-10-30 (hesap C): Mobil Aşama 3 yazıldı: veri katmanı (models, AppRepository + FakeAppRepository, validators, providers), ana sayfa kartları, bağış, etkinlik (liste/detay/kayıt/bekleme), proje, haber, aidat, giriş/kayıt, profil. Flutter hiç derlenmedi → DOĞRULANMAMIŞ; ilk iş `flutter pub get && flutter analyze && flutter test`. Bildirim ekranı, ücretli etkinlik ödeme adımı ve gerçek Firebase bağlantısı yok.

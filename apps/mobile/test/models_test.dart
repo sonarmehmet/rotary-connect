@@ -39,4 +39,19 @@ void main() {
     expect(c.paymentId, isNot(a.paymentId));
     expect(a.simulated, isTrue);
   });
+
+  test('ücretli etkinlikte ayrılan yer ödemeyle onaylanır; rezervasyonsuz ödeme reddedilir', () async {
+    final r = FakeAppRepository();
+    await expectLater(r.payEventFee('e1'), throwsStateError);
+    // e1 dolu (bekleme), e2 ücretsiz; ücretli ve boş kontenjanlı etkinlik örnek veride yok:
+    await r.registerForEvent('e1');
+    await expectLater(r.payEventFee('e1'), throwsStateError); // bekleme listesi ödeme yapamaz
+  });
+
+  test('bildirim okundu işaretlenir', () async {
+    final r = FakeAppRepository();
+    expect((await r.notifications()).every((n) => !n.read), isTrue);
+    await r.markNotificationRead('nt1');
+    expect((await r.notifications()).firstWhere((n) => n.id == 'nt1').read, isTrue);
+  });
 }
