@@ -6,6 +6,8 @@ bu dosya, `firebase/firestore.rules`, `firebase/firestore.indexes.json` ve `pack
 
 ## Genel kurallar
 
+- **Alan adı eşlemesi (backend):** domain kodundaki `xxxMs` (epoch ms) Firestore'da `xxx` adlı Timestamp'tır (`createdAtMs` ↔ `createdAt`).
+- **Firestore transaction kuralı:** tüm okumalar yazmalardan önce yapılır.
 - **Para:** `amountMinor` (int, kuruş) + `currency` (string, "TRY"). Asla double.
 - **Zaman:** Firestore `Timestamp` (UTC). Gösterim `Europe/Istanbul`. Alan adları `...At` (an) veya `...Date` (yalnızca tarih, Timestamp gün başlangıcı İstanbul saatiyle).
 - **Kimlik:** belge kimliği = Firestore otomatik id, aksi belirtilmedikçe. `users/{uid}` = Auth uid.
@@ -47,7 +49,7 @@ Gösterilen "toplanan" yalnızca `verifiedTotalMinor`. İade olursa Functions d�
 Misafir bağışı okunabilirliği: referans + e-posta ile callable `getDonationReceipt`; doğrudan istemci okuması yalnızca `userId` sahibine.
 
 ### payments/{id} — yazma: F
-`kind`, `refId` (due/donation/registration id), `userId?`, `amountMinor`, `currency`, `status`, `provider` ("simulation"|"iyzico"|"paytr"), `providerRef?`, `simulated: bool`, `idempotencyKey`, `manual: bool`, `recordedBy?` (manuel için), `note?`, `failureCode?`, `refundedMinor` (varsayılan 0), `createdAt`, `updatedAt`, `succeededAt?`.
+`kind`, `refId` (due/donation/registration id), `userId?`, `amountMinor`, `currency`, `status`, `provider` ("simulation"|"iyzico"|"paytr"), `providerRef?`, `simulated: bool`, `idempotencyKey`, `manual: bool`, `recordedBy?` (manuel için), `note?`, `failureCode?`, `flag?` (şüpheli durum, ör. `amount_mismatch`; bayraklı ödeme tahsilat sayılmaz, insan incelemesi gerekir), `refundedMinor` (varsayılan 0), `createdAt`, `updatedAt`, `succeededAt?`.
 `idempotencyKey` benzersiz; aynı anahtarla ikinci kayıt oluşmaz. Webhook işleme transaction içinde `decideWebhook` ile yapılır.
 
 ### refunds/{id} — yazma: F

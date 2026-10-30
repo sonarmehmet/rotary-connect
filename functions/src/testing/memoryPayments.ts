@@ -16,26 +16,35 @@ export class MemoryPayments implements PaymentTxRunner {
       const start = this.version;
       const draft = new Map(this.docs);
       let seq = this.seq;
+      let wrote = false;
+      const read = (): void => {
+        if (wrote) throw new Error("Firestore kuralı ihlali: transaction içinde yazmadan SONRA okuma yapılamaz");
+      };
       const tx: PaymentTx = {
         getPayment: async (id) => {
+          read();
           await Promise.resolve();
           return draft.get(id) ?? null;
         },
         findByIdempotencyKey: async (k) => {
+          read();
           await Promise.resolve();
           return [...draft.values()].find((d) => d.idempotencyKey === k) ?? null;
         },
         findByProviderRef: async (r) => {
+          read();
           await Promise.resolve();
           return [...draft.values()].find((d) => d.providerRef === r) ?? null;
         },
         listPendingCreatedBefore: async (before, limit) => {
+          read();
           await Promise.resolve();
           return [...draft.values()]
             .filter((d) => d.status === "pending" && d.createdAtMs < before)
             .slice(0, limit);
         },
         createPayment: async (d) => {
+          wrote = true;
           await Promise.resolve();
           seq += 1;
           const doc: PaymentDoc = { ...d, id: `pay_${seq}` };
@@ -43,6 +52,7 @@ export class MemoryPayments implements PaymentTxRunner {
           return doc;
         },
         updatePayment: async (id, patch) => {
+          wrote = true;
           await Promise.resolve();
           const cur = draft.get(id);
           if (!cur) throw new Error(`ödeme yok: ${id}`);

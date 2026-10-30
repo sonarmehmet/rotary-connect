@@ -198,14 +198,14 @@ export class EventRegistrationService {
       }
       const event = await requireEvent(tx, reg.eventId);
       const wasConfirmed = reg.status === "confirmed";
+      // Firestore kuralı: transaction içinde TÜM okumalar yazmalardan önce yapılmalıdır.
+      const allRegs = await tx.listRegistrations(event.id);
 
       const moved = await moveRegistration(tx, event, reg, "cancelled", {
         reservedUntilMs: null,
         waitlistPosition: null,
       });
-      const regs = (await tx.listRegistrations(event.id)).map((r) =>
-        r.id === reg.id ? moved.reg : r,
-      );
+      const regs = allRegs.map((r) => (r.id === reg.id ? moved.reg : r));
       const { promoted } = await promoteFromWaitlist(
         tx,
         moved.event,

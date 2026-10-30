@@ -40,24 +40,33 @@ export class MemoryStore implements TxRunner {
         regs: new Map(this.state.regs),
         seq: this.state.seq,
       };
+      let wrote = false;
+      const read = (): void => {
+        if (wrote) throw new Error("Firestore kuralı ihlali: transaction içinde yazmadan SONRA okuma yapılamaz");
+      };
       const tx: Tx = {
         getEvent: async (id) => {
+          read();
           await Promise.resolve();
           return draft.events.get(id) ?? null;
         },
         putEvent: async (e) => {
+          wrote = true;
           await Promise.resolve();
           draft.events.set(e.id, e);
         },
         getRegistration: async (id) => {
+          read();
           await Promise.resolve();
           return draft.regs.get(id) ?? null;
         },
         listRegistrations: async (eventId) => {
+          read();
           await Promise.resolve();
           return [...draft.regs.values()].filter((r) => r.eventId === eventId);
         },
         createRegistration: async (r) => {
+          wrote = true;
           await Promise.resolve();
           draft.seq += 1;
           const doc: RegistrationDoc = { ...r, id: `reg_${draft.seq}` };
@@ -65,6 +74,7 @@ export class MemoryStore implements TxRunner {
           return doc;
         },
         updateRegistration: async (id, patch) => {
+          wrote = true;
           await Promise.resolve();
           const cur = draft.regs.get(id);
           if (!cur) throw new Error(`kayıt yok: ${id}`);

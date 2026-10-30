@@ -24,3 +24,5 @@ export { constantTimeEqual } from "./lib/safeEqual";
 export { requestMembership, approveMembership, endMembership, assignDues } from "./members/members";
 export { buildNotification, shouldSend, dueReminderDue, DEFAULT_PREFS } from "./notifications/notifications";
 export { planAccountDeletion, anonymizeRecord } from "./privacy/deletion";
+export { FirestoreEventTxRunner, FirestorePaymentTxRunner } from "./adapters/firestoreStores";
+export type { FsDb, FsTx, Clock } from "./adapters/fsTypes";
