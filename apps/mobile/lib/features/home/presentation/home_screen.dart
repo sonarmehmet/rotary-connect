@@ -5,7 +5,6 @@ import 'package:rotary_shared/shared.dart';
 
 import '../../../core/router/app_router.dart';
 import '../../../core/theme/app_theme.dart';
-import '../../../data/models.dart';
 import '../../../data/providers.dart';
 import '../../../shared/widgets/brand_logo.dart';
 import '../../../shared/widgets/test_data_banner.dart';
