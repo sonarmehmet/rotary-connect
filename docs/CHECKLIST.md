@@ -18,8 +18,8 @@ Her hesap işini bitirince kendi bölümünü işaretler.
 
 ## Admin panel (Hesap B) — apps/admin_web (16 modül)
 - [x] Genel Bakış   - [x] Üyeler   - [x] Rol ve İzinler   - [x] Aidat   - [x] Kampanyalar
-- [ ] Bağış Kayıtları   - [x] Etkinlikler   - [x] Katılımcı Kayıtları   - [x] Projeler   - [x] Haberler
-- [x] Ödemeler   - [x] İadeler   - [ ] Bildirimler (sözleşme hazır: `sendAnnouncement`)   - [x] Raporlar/CSV
+- [x] Bağış Kayıtları   - [x] Etkinlikler   - [x] Katılımcı Kayıtları   - [x] Projeler   - [x] Haberler
+- [x] Ödemeler   - [x] İadeler   - [x] Bildirimler   - [x] Raporlar/CSV
 - [x] Denetim   - [x] Ayarlar
 - [ ] Gerçek veriye bağlama (Aşama 9, ağ gerekir)
 
@@ -28,12 +28,13 @@ Callable sözleşmesi (DATA_MODEL.md) — "mantık" = test edilmiş iş kuralı,
 - [x] requestMembership (mantık)       - [x] approveMembership (mantık)     - [ ] assignRole
 - [x] assignDues (mantık)              - [x] startPayment (mantık; bağış işleyicisi var, aidat/etkinlik işleyicisi yok)
 - [x] paymentWebhook (mantık; sağlayıcıya özel imza yok)   - [x] reconcilePending (mantık)
-- [x] recordManualPayment (mantık + işleyici)   - [ ] issueRefund (yalnızca plan; sağlayıcıya iade çağrısı yok)
+- [x] recordManualPayment (mantık + işleyici)   - [x] issueRefund (B: adminOps; simülasyon ödemesi, gerçek sağlayıcı iadesi henüz yok)
 - [x] reserveEventSpot (mantık + işleyici)      - [x] cancelRegistration (mantık + işleyici)
 - [x] expireReservations (mantık)      - [ ] getDonationReceipt   - [ ] exportReport
 - [x] requestAccountDeletion (yalnızca plan)    - [x] sendAnnouncement (mantık + işleyici)
 - [x] Ödeme sonucu etkileri (borç, bağış, kampanya toplamı, etkinlik kaydı, bildirim)
-- [x] Firestore adaptörleri (sahte Firestore ile test)
+- [x] Firestore adaptörleri (etkinlik, ödeme, ödeme etkileri; sahte Firestore ile test)
+- [x] startDuePayment / startEventFeePayment işleyicileri, webhook→etkiler akışı (`pipeline.ts`), etki tarama (`sweepEffects`)
 - [ ] firebase-admin SDK sarmalayıcısı (`adapters/sdk.ts`)       - [ ] onCall/HTTP sarmalayıcıları (`src/handlers` → Firebase)
 - [ ] Zamanlanmış işler (mutabakat, rezervasyon süresi, aidat gecikmesi/hatırlatma)
 - [ ] Firestore kuralları emülatör testleri (`tests/rules/`)

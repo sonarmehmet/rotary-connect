@@ -84,6 +84,8 @@ Yazıldı (`apps/admin_web/lib`): `core/` (biçim/İstanbul saati, Türkçe aram
 
 ## Oturum kayıtları
 
+- 2026-10-30 (hesap C, 2): Bağış Kayıtları admin ekranı (anonim gizleme, e-posta maskeleme). Backend: `FirestoreEffectsTxRunner` (koleksiyon `effect_markers` yalnızca sunucu; kurallar varsayılan kapalı), `handleProviderEvent` (webhook→etkiler), `sweepEffects` (zamanlanmış tarama kaynağı `SucceededPaymentSource` Firestore'da `status==succeeded` sorgusuyla yazılmalı), `startDuePaymentHandler`/`startEventFeePaymentHandler` (okuyucular `DueReader`/`RegistrationReader` Firestore'da yazılmalı). Yerel test çatısında 188 backend testi geçti. Flutter kodu DOĞRULANMAMIŞ.
+
 - 2026-10-30 (hesap C): Mobil Aşama 3 yazıldı: veri katmanı (models, AppRepository + FakeAppRepository, validators, providers), ana sayfa kartları, bağış, etkinlik (liste/detay/kayıt/bekleme), proje, haber, aidat, giriş/kayıt, profil. Flutter hiç derlenmedi → DOĞRULANMAMIŞ; ilk iş `flutter pub get && flutter analyze && flutter test`. Bildirim ekranı, ücretli etkinlik ödeme adımı ve gerçek Firebase bağlantısı yok.
 
 - 2026-10-29 (hesap 1): Aşama 1 planı, Aşama 2 iskeleti, Firestore/Storage kuralları, functions çekirdeği.

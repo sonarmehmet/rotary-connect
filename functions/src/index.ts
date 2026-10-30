@@ -49,3 +49,8 @@ export {
   exportReportHandler,
 } from "./handlers/adminOps";
 export type { AdminTx, AdminTxRunner, DuesTx, DuesTxRunner, RefundTx, RefundTxRunner, ExportReader } from "./handlers/adminOps";
+export { FirestoreEffectsTxRunner } from "./adapters/firestoreEffects";
+export { handleProviderEvent, sweepEffects } from "./payments/pipeline";
+export type { PipelineResult, SucceededPaymentSource, SweepReport } from "./payments/pipeline";
+export { startDuePaymentHandler, startEventFeePaymentHandler } from "./handlers/payHandlers";
+export type { DueReader, RegistrationReader, PayHandlerDeps, PayResult } from "./handlers/payHandlers";
