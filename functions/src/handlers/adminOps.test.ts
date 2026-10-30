@@ -3,6 +3,7 @@ import { AuditEntry } from "../audit/audit";
 import { DueAssignment, MemberDoc } from "../members/members";
 import { Role } from "../lib/roles";
 import { PaymentDoc } from "../payments/repo";
+import { MemoryEffects } from "../testing/memoryEffects";
 import {
   AdminTx,
   DuesTx,
@@ -15,6 +16,7 @@ import {
   endMembershipHandler,
   exportReportHandler,
   issueRefundHandler,
+  cancelDueHandler,
   periodIdFor,
 } from "./adminOps";
 import { toCallableError } from "./callableError";
@@ -481,5 +483,40 @@ describe("issueRefund — gerçek sağlayıcı iadesi", () => {
     const man = refundSetup([real({ manual: true })]);
     await issueRefundHandler({ ...man.deps, providerRefund: count }, FIN, body);
     expect(called).toBe(0);
+  });
+});
+
+describe("cancelDue", () => {
+  function setup(paidMinor: number, cancelled = false) {
+    const fx = new MemoryEffects();
+    fx.dues.set("due1", {
+      id: "due1", userId: "u1", currency: "TRY", amountMinor: 120_000, paidMinor, dueDateMs: NOW + DAYMS,
+      cancelled, refunded: false, allowPartial: true, status: cancelled ? "cancelled" : "unpaid",
+    });
+    const audit: AuditEntry[] = [];
+    const deps = { runner: fx, audit: { write: async (e: AuditEntry) => void audit.push(e) }, nowMs: () => NOW };
+    return { fx, audit, deps };
+  }
+  const body = { dueId: "due1", reason: "Yanlış üyeye atandı" };
+  const DAYMS = 86_400_000;
+
+  it("yalnızca finans yöneticisi", async () => {
+    const s = setup(0);
+    expect(await failure(cancelDueHandler(s.deps, ADMIN, body))).toBe("permission-denied:");
+    expect(s.fx.dues.get("due1")?.status).toBe("unpaid");
+  });
+
+  it("ödenmemiş borcu iptal eder ve denetim yazar", async () => {
+    const s = setup(0);
+    expect(await cancelDueHandler(s.deps, FIN, body)).toEqual({ dueId: "due1", status: "cancelled" });
+    expect(s.fx.dues.get("due1")?.status).toBe("cancelled");
+    expect(s.audit.map((e) => e.action)).toEqual(["due.cancel"]);
+  });
+
+  it("ödemesi alınmış borç iptal edilemez; tekrar iptal ve olmayan borç reddedilir", async () => {
+    expect(await failure(cancelDueHandler(setup(10_000).deps, FIN, body))).toBe("failed-precondition:due_has_payments");
+    expect(await failure(cancelDueHandler(setup(0, true).deps, FIN, body))).toBe("failed-precondition:already_cancelled");
+    expect(await failure(cancelDueHandler(setup(0).deps, FIN, { ...body, dueId: "yok" }))).toBe("not-found:due_not_found");
+    expect(await failure(cancelDueHandler(setup(0).deps, FIN, { ...body, reason: "kısa" }))).toBe("invalid-argument:invalid_reason");
   });
 });

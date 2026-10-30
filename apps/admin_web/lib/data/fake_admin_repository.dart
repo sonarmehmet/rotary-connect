@@ -342,6 +342,42 @@ class FakeAdminRepository implements AdminRepository {
   }
 
   @override
+  Future<void> cancelDue(String dueId, String reason) async {
+    if (reason.trim().length < 5) {
+      throw const AdminException('invalid-argument', null, 'invalid_reason');
+    }
+    final i = _dues.indexWhere((d) => d.id == dueId);
+    if (i < 0) throw const AdminException('not-found', null, 'due_not_found');
+    final d = _dues[i];
+    if (d.status == DueStatus.cancelled) {
+      throw const AdminException(
+          'failed-precondition', null, 'already_cancelled');
+    }
+    if (d.paidMinor > 0) {
+      throw const AdminException(
+          'failed-precondition', null, 'due_has_payments');
+    }
+    _dues[i] = MembershipDue(
+      id: d.id,
+      userId: d.userId,
+      userName: d.userName,
+      memberId: d.memberId,
+      periodId: d.periodId,
+      periodLabel: d.periodLabel,
+      amountMinor: d.amountMinor,
+      currency: d.currency,
+      paidMinor: 0,
+      dueDate: d.dueDate,
+      status: DueStatus.cancelled,
+      allowPartial: d.allowPartial,
+      createdAt: d.createdAt,
+    );
+    _log('due.cancel', 'due', dueId,
+        before: {'status': 'open', 'amountMinor': d.amountMinor},
+        after: {'status': 'cancelled', 'reason': reason.trim()});
+  }
+
+  @override
   Future<List<RefundRecord>> listRefunds() async => List.of(_refunds);
 
   @override

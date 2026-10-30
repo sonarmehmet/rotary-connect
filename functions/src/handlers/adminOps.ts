@@ -3,6 +3,7 @@ import { DueAssignment, MemberDoc, approveMembership, assignDues, endMembership 
 import { DomainError } from "../lib/errors";
 import { buildCsv, formatMoney } from "../lib/csv";
 import { Role, requireRole } from "../lib/roles";
+import { EffectsTxRunner } from "../payments/effects";
 import { planRefund } from "../payments/refunds";
 import { PaymentKindWire, PaymentTx, PaymentDoc } from "../payments/repo";
 import { AuditSink, CallableAuth, requireAuth } from "./handlers";
@@ -260,6 +261,55 @@ export async function assignDuesHandler(
     nowMs,
   });
   return { created: result.created.length, skipped: result.skipped.length, periodId };
+}
+
+// ------------------------------------------------------------------ borç iptali (yanlış atama düzeltmesi)
+
+export interface CancelDueDeps {
+  readonly runner: EffectsTxRunner;
+  readonly audit: AuditSink;
+  readonly nowMs: () => number;
+}
+
+/**
+ * Yanlış atanan borcu iptal eder (yalnızca finans yöneticisi). Ödemesi alınmış borç iptal edilemez:
+ * önce iade edilmelidir (`due_has_payments`). İptal sonrası yoldaki bir online ödeme gelirse
+ * `applyCollected` bunu `due_not_payable` olarak iade talebine çevirir.
+ */
+export async function cancelDueHandler(
+  deps: CancelDueDeps,
+  auth: CallableAuth | null | undefined,
+  data: unknown,
+): Promise<{ dueId: string; status: "cancelled" }> {
+  const ctx = requireAuth(auth);
+  requireRole(ctx.role, ["finance_manager"]);
+  const o = asObject(data, "data");
+  const dueId = asString(o["dueId"], "dueId", { max: 128 });
+  const reason = asString(o["reason"], "reason", { min: 5, max: 300 });
+  const nowMs = deps.nowMs();
+
+  const before = await deps.runner.run(async (tx) => {
+    const due = await tx.getDue(dueId);
+    if (!due) throw new DomainError("not-found", "Borç bulunamadı", "due_not_found");
+    if (due.cancelled) throw new DomainError("failed-precondition", "Borç zaten iptal edilmiş", "already_cancelled");
+    if (due.paidMinor > 0) {
+      throw new DomainError("failed-precondition", "Ödemesi alınmış borç iptal edilemez; önce iade edin", "due_has_payments");
+    }
+    tx.updateDue(dueId, { paidMinor: 0, status: "cancelled" });
+    return { paidMinor: due.paidMinor, amountMinor: due.amountMinor };
+  });
+
+  await writeAudit(deps, {
+    actorId: ctx.uid,
+    actorRole: ctx.role,
+    action: "due.cancel",
+    targetType: "due",
+    targetId: dueId,
+    before: { status: "open", amountMinor: before.amountMinor },
+    after: { status: "cancelled", reason },
+    nowMs,
+  });
+  return { dueId, status: "cancelled" };
 }
 
 // ------------------------------------------------------------------ iade

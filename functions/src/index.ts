@@ -50,6 +50,7 @@ export {
   approveMembershipHandler,
   endMembershipHandler,
   assignDuesHandler,
+  cancelDueHandler,
   issueRefundHandler,
   exportReportHandler,
 } from "./handlers/adminOps";

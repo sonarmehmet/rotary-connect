@@ -3,7 +3,7 @@ import { initializeApp, getApps } from "firebase-admin/app";
 import { FirestoreAdminTxRunner, FirestoreAuditSink, FirestoreDuesTxRunner, FirestoreExportReader, FirestoreRefundTxRunner } from "./adapters/adminFirestore";
 import { AdminSdkAuthRoles, AdminSdkFirestore, timestampClock } from "./adapters/sdk";
 import {
-  approveMembershipHandler, assignDuesHandler, assignRoleHandler, endMembershipHandler,
+  approveMembershipHandler, assignDuesHandler, cancelDueHandler, assignRoleHandler, endMembershipHandler,
   exportReportHandler, issueRefundHandler,
 } from "./handlers/adminOps";
 import { CallableAuth } from "./handlers/handlers";
@@ -45,6 +45,7 @@ function build() {
         await applyRefundEffects(refundEffects, p, refundId, amount, full);
       },
     },
+    cancel: { runner: refundEffects.runner, audit, nowMs },
     exports: { reader: new FirestoreExportReader(db, timestampClock), audit, nowMs },
   };
 }
@@ -83,4 +84,5 @@ export const issueRefund = wrap(
     ),
   SECRETS,
 );
+export const cancelDue = wrap((a, d) => cancelDueHandler(deps().cancel, a, d));
 export const exportReport = wrap((a, d) => exportReportHandler(deps().exports, a, d));

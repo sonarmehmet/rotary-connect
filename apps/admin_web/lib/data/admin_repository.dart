@@ -41,6 +41,9 @@ abstract class AdminRepository {
   /// `createDue` / `assignDues` callable'ı.
   Future<void> createDues(NewDuesRequest request);
 
+  /// `cancelDue` callable'ı: yanlış atanan, ödemesi alınmamış borcu iptal eder.
+  Future<void> cancelDue(String dueId, String reason);
+
   // --- Ödemeler ve iadeler (yazma: "F") ---
   Future<List<PaymentRecord>> listPayments();
 

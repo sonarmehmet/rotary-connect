@@ -515,4 +515,35 @@ void main() {
       );
     });
   });
+
+  test('borç iptali: ödemesiz borç iptal olur; ödenmiş/tekrar/kısa gerekçe reddedilir',
+      () async {
+    final repo = FakeAdminRepository();
+    final dues = await repo.listDues();
+    final open = dues.firstWhere(
+      (d) => d.paidMinor == 0 && d.status != DueStatus.cancelled,
+    );
+    await expectLater(
+      repo.cancelDue(open.id, 'kısa'),
+      throwsA(isA<AdminException>()
+          .having((e) => e.reason, 'reason', 'invalid_reason')),
+    );
+    await repo.cancelDue(open.id, 'Yanlış üyeye atandı');
+    expect(
+      (await repo.listDues()).firstWhere((d) => d.id == open.id).status,
+      DueStatus.cancelled,
+    );
+    expect((await repo.listAuditLogs()).first.action, 'due.cancel');
+    await expectLater(
+      repo.cancelDue(open.id, 'Yanlış üyeye atandı'),
+      throwsA(isA<AdminException>()
+          .having((e) => e.reason, 'reason', 'already_cancelled')),
+    );
+    final paid = dues.firstWhere((d) => d.paidMinor > 0);
+    await expectLater(
+      repo.cancelDue(paid.id, 'Yanlış üyeye atandı'),
+      throwsA(isA<AdminException>()
+          .having((e) => e.reason, 'reason', 'due_has_payments')),
+    );
+  });
 }

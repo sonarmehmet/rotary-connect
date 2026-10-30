@@ -155,6 +155,10 @@ void main() {
     expect(client.name, 'assignRole');
     expect(client.data, {'userId': 'usr_1', 'role': 'finance_manager'});
 
+    await calls.cancelDue('due_1', '  Yanlış atama ');
+    expect(client.name, 'cancelDue');
+    expect(client.data, {'dueId': 'due_1', 'reason': 'Yanlış atama'});
+
     await calls.approveMembership('mem_7', ' ÜY-0007 ');
     expect(client.name, 'approveMembership');
     expect(client.data, {'memberId': 'mem_7', 'memberNo': 'ÜY-0007'});

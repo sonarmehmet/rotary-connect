@@ -60,6 +60,11 @@ const Map<String, String> reasonMessagesTr = {
   'provider_refund_unavailable': 'Sağlayıcı iadesi henüz desteklenmiyor.',
   'too_many_rows': 'Çok fazla satır: tarih aralığını daraltın.',
   'invalid_range': 'Başlangıç tarihi bitişten sonra olamaz.',
+  'due_not_found': 'Borç bulunamadı.',
+  'already_cancelled': 'Bu borç zaten iptal edilmiş.',
+  'due_has_payments':
+      'Ödemesi alınmış borç iptal edilemez; önce ödemeyi iade edin.',
+  'invalid_reason': 'Gerekçe en az 5 karakter olmalı.',
   'sensitive_content':
       'Metin tutar, e-posta veya telefon gibi kişisel/finansal bilgi içeremez.',
 };

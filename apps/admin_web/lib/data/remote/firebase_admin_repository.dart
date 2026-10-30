@@ -376,6 +376,10 @@ class FirebaseAdminRepository implements AdminRepository {
     await _calls.assignDues(r);
   }
 
+  @override
+  Future<void> cancelDue(String dueId, String reason) =>
+      _calls.cancelDue(dueId, reason);
+
   // ------------------------------------------------------------ ödemeler
 
   @override

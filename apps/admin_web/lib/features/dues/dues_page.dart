@@ -46,7 +46,7 @@ class DuesPage extends ConsumerWidget {
           searchText: (d) => '${d.userName} ${d.periodLabel} ${d.status.label}',
           dateOf: (d) => d.dueDate,
           dateLabel: 'Vade tarihi',
-          onRowTap: (d) => _detail(context, d, canRecord),
+          onRowTap: (d) => _detail(context, ref, d, canRecord, canAssign),
           filters: [
             TableFilter<MembershipDue>(
               label: 'Durum',
@@ -117,7 +117,78 @@ class DuesPage extends ConsumerWidget {
     }
   }
 
-  void _detail(BuildContext context, MembershipDue d, bool canRecord) {
+  Future<void> _cancel(
+    BuildContext context,
+    WidgetRef ref,
+    MembershipDue d,
+  ) async {
+    final reason = TextEditingController();
+    String? error;
+    final done = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          title: const Text('Borcu iptal et'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text('${d.userName} — ${d.periodLabel} borcu iptal edilecek. '
+                  'Ödemesi alınmış borç iptal edilemez; önce iade edin.'),
+              const SizedBox(height: 12),
+              TextField(
+                controller: reason,
+                maxLines: 2,
+                decoration: fieldDecoration('Gerekçe'),
+              ),
+              if (error != null) ...[
+                const SizedBox(height: 8),
+                Text(error!, style: const TextStyle(color: Colors.red)),
+              ],
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: const Text('Vazgeç'),
+            ),
+            FilledButton(
+              onPressed: () async {
+                try {
+                  await ref
+                      .read(adminRepositoryProvider)
+                      .cancelDue(d.id, reason.text);
+                  if (dialogContext.mounted) {
+                    Navigator.of(dialogContext).pop(true);
+                  }
+                } catch (e) {
+                  setState(() => error = errorMessageTr(e));
+                }
+              },
+              child: const Text('Borcu iptal et'),
+            ),
+          ],
+        ),
+      ),
+    );
+    reason.dispose();
+    if (done == true) {
+      ref.invalidate(duesProvider);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Borç iptal edildi.')),
+        );
+      }
+    }
+  }
+
+  void _detail(
+    BuildContext context,
+    WidgetRef ref,
+    MembershipDue d,
+    bool canRecord,
+    bool canCancel,
+  ) {
     final open = d.status == DueStatus.unpaid ||
         d.status == DueStatus.partiallyPaid ||
         d.status == DueStatus.overdue;
@@ -151,6 +222,15 @@ class DuesPage extends ConsumerWidget {
             },
             icon: const Icon(Icons.payments_outlined),
             label: const Text('Manuel ödeme kaydet'),
+          ),
+        if (canCancel && open && d.paidMinor == 0)
+          OutlinedButton.icon(
+            onPressed: () {
+              Navigator.of(dialogContext).pop();
+              _cancel(context, ref, d);
+            },
+            icon: const Icon(Icons.block),
+            label: const Text('Borcu iptal et'),
           ),
       ],
     );

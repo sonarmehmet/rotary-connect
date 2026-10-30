@@ -49,6 +49,11 @@ class AdminCallables {
     return id;
   }
 
+  /// `cancelDue` (yalnızca finans yöneticisi). Ödemesi alınmış borç iptal edilemez.
+  Future<void> cancelDue(String dueId, String reason) async {
+    await _client.call('cancelDue', {'dueId': dueId, 'reason': reason.trim()});
+  }
+
   /// `assignRole` (yalnızca sistem yöneticisi). `club_member` atanamaz.
   Future<void> assignRole(String userId, AppRole role) async {
     await _client.call('assignRole', {'userId': userId, 'role': role.wireName});
