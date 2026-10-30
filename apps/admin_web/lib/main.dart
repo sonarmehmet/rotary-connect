@@ -14,6 +14,7 @@ import 'features/members/members_page.dart';
 import 'features/news/news_page.dart';
 import 'features/notifications/notifications_page.dart';
 import 'features/overview/overview_page.dart';
+import 'features/donations/donations_page.dart';
 import 'features/payments/payments_page.dart';
 import 'features/projects/projects_page.dart';
 import 'features/refunds/refunds_page.dart';
@@ -38,6 +39,7 @@ const Map<String, Widget> _pages = {
   '/events': EventsPage(),
   '/projects': ProjectsPage(),
   '/news': NewsPage(),
+  '/donations': DonationsPage(),
   '/payments': PaymentsPage(),
   '/refunds': RefundsPage(),
   '/reports': ReportsPage(),

@@ -1,5 +1,6 @@
 import 'package:rotary_shared/shared.dart';
 
+import 'donation_record.dart';
 import 'models.dart';
 
 /// Panelin veri erişim sözleşmesi.
@@ -42,6 +43,9 @@ abstract class AdminRepository {
 
   // --- Ödemeler ve iadeler (yazma: "F") ---
   Future<List<PaymentRecord>> listPayments();
+
+  /// Bağış kayıtları (salt okunur).
+  Future<List<DonationRecord>> listDonations();
 
   /// `recordManualPayment` callable'ı.
   Future<void> recordManualPayment(ManualPaymentRequest request);

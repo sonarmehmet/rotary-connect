@@ -3,6 +3,7 @@ import 'package:rotary_shared/shared.dart';
 import '../core/admin_exception.dart';
 import '../core/sensitive.dart';
 import 'admin_repository.dart';
+import 'donation_record.dart';
 import 'models.dart';
 import 'report_csv.dart';
 import 'sample_data.dart';
@@ -193,6 +194,30 @@ class FakeAdminRepository implements AdminRepository {
 
   @override
   Future<List<PaymentRecord>> listPayments() async => List.of(_payments);
+
+  @override
+  Future<List<DonationRecord>> listDonations() async {
+    // Örnek veri: bağış ödemelerinden türetilir (durum ödemeyi izler).
+    var n = 0;
+    return [
+      for (final p in _payments.where((p) => p.kind == PaymentKind.donation))
+        DonationRecord(
+          id: 'don_${p.id}',
+          paymentId: p.id,
+          campaignId: p.refId == 'general' ? null : p.refId,
+          userId: p.userId,
+          donorName: 'Bağışçı ${++n}',
+          donorEmail: 'bagisci$n@example.com',
+          anonymous: n % 4 == 0,
+          amountMinor: p.amountMinor,
+          currency: p.currency,
+          status: p.status,
+          simulated: p.simulated,
+          receiptNo: p.status == PaymentStatus.succeeded ? 'MK-${p.id}' : null,
+          createdAt: p.createdAt,
+        ),
+    ];
+  }
 
   @override
   Future<void> recordManualPayment(ManualPaymentRequest request) async {

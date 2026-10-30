@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'admin_repository.dart';
 import 'fake_admin_repository.dart';
+import 'donation_record.dart';
 import 'models.dart';
 
 /// Depo sağlayıcısı. Dalga 2'de gerçek (Firestore + Functions) uygulamayla
@@ -33,6 +34,10 @@ final duesProvider = FutureProvider.autoDispose<List<MembershipDue>>(
 
 final membersProvider = FutureProvider.autoDispose<List<MemberOption>>(
   (ref) => ref.watch(adminRepositoryProvider).listActiveMembers(),
+);
+
+final donationsProvider = FutureProvider.autoDispose<List<DonationRecord>>(
+  (ref) => ref.watch(adminRepositoryProvider).listDonations(),
 );
 
 final paymentsProvider = FutureProvider.autoDispose<List<PaymentRecord>>(
@@ -73,6 +78,7 @@ void invalidateFinance(WidgetRef ref) {
   ref
     ..invalidate(duesProvider)
     ..invalidate(paymentsProvider)
+    ..invalidate(donationsProvider)
     ..invalidate(refundsProvider)
     ..invalidate(auditLogsProvider)
     ..invalidate(aggregatesProvider);
