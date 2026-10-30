@@ -37,6 +37,7 @@ class FakeAppRepository implements AppRepository {
   final Map<String, DonationResult> _byKey = {};
   final Set<String> _readNotes = {};
   NotificationPrefs _prefs = const NotificationPrefs();
+  NotificationPrefs _prefs = const NotificationPrefs();
 
   @override
   Future<List<Campaign>> campaigns() async => [
@@ -159,6 +160,12 @@ class FakeAppRepository implements AppRepository {
 
   @override
   Future<void> markNotificationRead(String id) async => _readNotes.add(id);
+
+  @override
+  Future<NotificationPrefs> notificationPrefs() async => _prefs;
+
+  @override
+  Future<void> saveNotificationPrefs(NotificationPrefs prefs) async => _prefs = prefs;
 
   @override
   Future<NotificationPrefs> notificationPrefs() async => _prefs;

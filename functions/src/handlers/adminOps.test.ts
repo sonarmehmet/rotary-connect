@@ -426,3 +426,38 @@ describe("exportReport", () => {
     expect(s.audit).toHaveLength(0);
   });
 });
+
+describe("issueRefund — gerçek sağlayıcı iadesi", () => {
+  const real = (over: Partial<PaymentDoc> = {}) => payment({ simulated: false, manual: false, provider: "iyzico", providerRef: "tok-1", ...over });
+  const body = { paymentId: "pay1", amountMinor: 20000, reason: "Mükerrer ödeme" };
+
+  it("önce sağlayıcıda iade edilir, sonra kayıt yazılır; anahtar aynı iade için sabittir", async () => {
+    const s = refundSetup([real()]);
+    const calls: { ref: string | null; amount: number; key: string }[] = [];
+    const deps = { ...s.deps, providerRefund: async (p: PaymentDoc, amount: number, key: string) => void calls.push({ ref: p.providerRef, amount, key }) };
+    expect(await issueRefundHandler(deps, FIN, body)).toMatchObject({ paymentStatus: "partially_refunded", refundedMinor: 20000 });
+    expect(calls).toEqual([{ ref: "tok-1", amount: 20000, key: "refund_pay1_0_20000" }]);
+    expect(s.refunds).toHaveLength(1);
+  });
+
+  it("sağlayıcı reddederse hiçbir kayıt yazılmaz", async () => {
+    const s = refundSetup([real()]);
+    const deps = { ...s.deps, providerRefund: async () => { throw new Error("ret"); } };
+    expect(await failure(issueRefundHandler(deps, FIN, body))).toBe("unavailable:provider_refund_failed");
+    expect(s.refunds).toHaveLength(0);
+    expect(s.store.get("pay1")?.refundedMinor).toBe(0);
+    expect(s.audit).toHaveLength(0);
+  });
+
+  it("geçersiz iade sağlayıcıya HİÇ gitmez; simülasyon ve manuel ödeme sağlayıcıya gitmez", async () => {
+    let called = 0;
+    const count = async () => void called++;
+    const over = refundSetup([real({ refundedMinor: 40000, status: "partially_refunded" })]);
+    expect(await failure(issueRefundHandler({ ...over.deps, providerRefund: count }, FIN, body))).toBe("invalid-argument:exceeds_remaining");
+    const sim = refundSetup([payment({})]);
+    await issueRefundHandler({ ...sim.deps, providerRefund: count }, FIN, body);
+    const man = refundSetup([real({ manual: true })]);
+    await issueRefundHandler({ ...man.deps, providerRefund: count }, FIN, body);
+    expect(called).toBe(0);
+  });
+});

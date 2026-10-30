@@ -64,4 +64,14 @@ void main() {
     expect(q.dues, isFalse);
     expect(q.events, isTrue);
   });
+
+  test('bildirim tercihleri kaydedilir ve varsayılan hepsi açıktır', () async {
+    final r = FakeAppRepository();
+    final d = await r.notificationPrefs();
+    expect(d.events && d.dues && d.donations && d.announcements, isTrue);
+    await r.saveNotificationPrefs(d.copyWith(dues: false));
+    final n = await r.notificationPrefs();
+    expect(n.dues, isFalse);
+    expect(n.events, isTrue);
+  });
 }

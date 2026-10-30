@@ -11,6 +11,7 @@ final projectsProvider = FutureProvider<List<Project>>((ref) => ref.watch(reposi
 final newsProvider = FutureProvider<List<NewsItem>>((ref) => ref.watch(repositoryProvider).news());
 final notificationsProvider = FutureProvider<List<AppNotification>>((ref) => ref.watch(repositoryProvider).notifications());
 final notificationPrefsProvider = FutureProvider<NotificationPrefs>((ref) => ref.watch(repositoryProvider).notificationPrefs());
+final notificationPrefsProvider = FutureProvider<NotificationPrefs>((ref) => ref.watch(repositoryProvider).notificationPrefs());
 final duesProvider = FutureProvider<List<DueItem>>((ref) => ref.watch(repositoryProvider).myDues());
 
 /// Oturumdaki kullanıcı; null = ziyaretçi. Rol, yönlendirme için [currentRoleProvider]'a yansıtılır.

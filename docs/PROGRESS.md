@@ -84,6 +84,8 @@ Yazıldı (`apps/admin_web/lib`): `core/` (biçim/İstanbul saati, Türkçe aram
 
 ## Oturum kayıtları
 
+- 2026-10-31 (hesap C, 5): Gerçek para iadesi: `PaymentProvider.refund`, `IyzicoProvider.refund` (detay→paymentId→`/v2/payment/refund`, conversationId=idempotencyKey), `issueRefundHandler` 3 adımlı (planla → sağlayıcıda iade → kaydı yaz; geçersiz iade sağlayıcıya gitmez, sağlayıcı reddederse kayıt yazılmaz, tekrar deneme aynı anahtarla çift iade üretmez). `callables.ts` canlı modda `providerRefund` bağlar (B'nin dosyasına küçük değişiklik, `firebase/payConfig.ts` ortak yapılandırma). Mobil bildirim tercih ekranı. Backend 228 test geçti (yerel çatı). DOĞRULANMAMIŞ: iyzico iade uç noktası, `src/firebase/*`, `callables.ts`.
+
 - 2026-10-30 (hesap C, 5): `issueRefundHandler` (B'nin dosyası, C minimal düzenledi: `providerRefund` isteğe bağlı bağımlılık; sıra: planla → sağlayıcı iadesi → kaydı yaz; sağlayıcı reddederse kayıt değişmez; anahtar `refund_<ödeme>_<önceki>_<tutar>` ile sağlayıcıda çift iade olmaz). `IyzicoProvider.refund` (uç nokta `/v2/payment/refund` DOĞRULANMAMIŞ). `firebase/payConfig.ts` ortak yapılandırma. Mobil bildirim tercih ekranı. Backend 223 test geçti.
 
 - 2026-10-30 (hesap C, 4): Karar: ödeme sağlayıcı = iyzico (DECISIONS #7). `payments/iyzico.ts` + `handlers/iyzicoWebhook.ts`; `PaymentProvider.getResult` (tutar sağlayıcıdan; mutabakat artık kendi kaydıyla onaylamaz). `privacy/executeDeletion.ts`. `src/firebase/` (sdk, stores, iyzicoHttp, main) ve `package.json` `main: lib/firebase/main.js`, bağımlılıklar firebase-admin/firebase-functions. `tests/rules/`. Backend 210 test geçti (yerel çatı). DOĞRULANMAMIŞ: `src/firebase/*` hiç derlenmedi; iyzico alan adları/IYZWSv2 imzası sandbox'ta denenmedi; kural testleri çalışmadı.

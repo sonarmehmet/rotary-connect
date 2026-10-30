@@ -153,3 +153,31 @@ describe("iyzico iadesi", () => {
     await expect(denied.refund("t", 100, "k")).rejects.toThrow();
   });
 });
+
+describe("IyzicoProvider.refund", () => {
+  it("önce ödeme ayrıntısından paymentId alır, sonra tutar bazlı iade çağırır (anahtar conversationId)", async () => {
+    const sent: { path: string; body: Record<string, unknown> }[] = [];
+    const http: IyzicoHttp = {
+      async post(path, body) {
+        sent.push({ path, body });
+        return path.includes("detail") ? { status: "success", paymentId: "9001" } : { status: "success" };
+      },
+    };
+    const p = new IyzicoProvider({ http, callbackUrl: "x", buyerFor });
+    await p.refund("tok-1", 2_550, "refund_pay1_0_2550");
+    expect(sent[1]?.path).toBe("/v2/payment/refund");
+    expect(sent[1]?.body["paymentId"]).toBe("9001");
+    expect(sent[1]?.body["price"]).toBe("25.50");
+    expect(sent[1]?.body["conversationId"]).toBe("refund_pay1_0_2550");
+  });
+
+  it("ayrıntı alınamaz ya da iyzico reddederse hata fırlatır", async () => {
+    const noDetail = new IyzicoProvider({ http: { post: async () => ({ status: "failure" }) }, callbackUrl: "x", buyerFor });
+    await expect(noDetail.refund("t", 100, "k")).rejects.toThrow();
+    const refused = new IyzicoProvider({
+      http: { post: async (path) => (path.includes("detail") ? { status: "success", paymentId: "1" } : { status: "failure", errorCode: "5" }) },
+      callbackUrl: "x", buyerFor,
+    });
+    await expect(refused.refund("t", 100, "k")).rejects.toThrow();
+  });
+});
