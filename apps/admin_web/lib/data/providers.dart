@@ -43,6 +43,19 @@ final refundsProvider = FutureProvider.autoDispose<List<RefundRecord>>(
   (ref) => ref.watch(adminRepositoryProvider).listRefunds(),
 );
 
+final clubMembersProvider = FutureProvider.autoDispose<List<ClubMember>>(
+  (ref) => ref.watch(adminRepositoryProvider).listClubMembers(),
+);
+
+final usersProvider = FutureProvider.autoDispose<List<AppUserRow>>(
+  (ref) => ref.watch(adminRepositoryProvider).listUsers(),
+);
+
+final registrationsProvider =
+    FutureProvider.autoDispose<List<EventRegistration>>(
+  (ref) => ref.watch(adminRepositoryProvider).listRegistrations(),
+);
+
 final auditLogsProvider = FutureProvider.autoDispose<List<AuditLogEntry>>(
   (ref) => ref.watch(adminRepositoryProvider).listAuditLogs(),
 );

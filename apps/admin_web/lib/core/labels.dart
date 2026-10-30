@@ -79,3 +79,34 @@ extension RefundStatusTone on RefundStatus {
         RefundStatus.failed => StatusTone.danger,
       };
 }
+
+extension AppRoleLabels on AppRole {
+  String get labelTr => switch (this) {
+        AppRole.visitor => 'Ziyaretçi',
+        AppRole.registeredUser => 'Kayıtlı kullanıcı',
+        AppRole.clubMember => 'Kulüp üyesi',
+        AppRole.contentManager => 'İçerik yöneticisi',
+        AppRole.financeManager => 'Finans yöneticisi',
+        AppRole.systemAdmin => 'Sistem yöneticisi',
+      };
+}
+
+extension MemberStatusTone on MemberStatus {
+  StatusTone get tone => switch (this) {
+        MemberStatus.pending => StatusTone.warning,
+        MemberStatus.active => StatusTone.success,
+        MemberStatus.suspended => StatusTone.danger,
+        MemberStatus.resigned => StatusTone.neutral,
+      };
+}
+
+extension RegistrationStatusTone on RegistrationStatus {
+  StatusTone get tone => switch (this) {
+        RegistrationStatus.reserved => StatusTone.warning,
+        RegistrationStatus.confirmed => StatusTone.success,
+        RegistrationStatus.waitlisted => StatusTone.info,
+        RegistrationStatus.cancelled => StatusTone.neutral,
+        RegistrationStatus.expired => StatusTone.neutral,
+        RegistrationStatus.refunded => StatusTone.info,
+      };
+}

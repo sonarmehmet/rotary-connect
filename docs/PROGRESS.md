@@ -52,7 +52,8 @@ Ayrıca `firebase/firestore.rules` emülatörle henüz test edilmedi (Aşama 10'
 Yazıldı (`apps/admin_web/lib`): `core/` (biçim/İstanbul saati, Türkçe arama, CSV, hata eşleme, etiketler), `data/` (modeller, `AdminRepository` arayüzü, `FakeAdminRepository` + örnek veri), `ui/` (`AdminTable`, form/diyalog bileşenleri, durum görünümleri, `TestDataBanner`), `features/` (overview, campaigns, events, projects, news, dues, payments, refunds, audit, reports/CSV). Testler: `test/core_test.dart`, `repository_test.dart`, `pages_test.dart`, `shell_test.dart`.
 - Rol filtresi: menü + rota düzeyinde (yetkisiz rota `NoAccessView`); yazma düğmeleri izne göre gizlenir. Asıl yetki sunucudadır.
 - CSV: Dalga 1'de önizleme + panoya kopyala (dosya indirme Dalga 2'de `exportReport` ile bağlanacak). Formül enjeksiyonu önlemi, `;` ayraç, UTF-8 BOM, kişisel veri yok.
-- Henüz placeholder: Kullanıcı ve Üyeler, Rol ve İzinler, Katılımcı Kayıtları, Bildirimler, Uygulama Ayarları (Dalga 2).
+- Üyeler (onay/askıya alma/istifa), Rol ve İzinler (rol atama; son sistem yöneticisi korunur; club_member yalnızca üyelik onayıyla) ve Katılımcı Kayıtları (salt okunur) eklendi; sahte depo `functions/src/members/members.ts` kurallarını taklit eder.
+- Henüz placeholder: Bildirimler, Uygulama Ayarları (Dalga 2).
 
 **Dalga 2 için notlar (B → kendim / C):**
 - `report_aggregates` gerçekte GÜNLÜK satır (`day`) ve SİMÜLASYON ödemelerini DIŞLAR (`functions/src/reports/aggregates.ts`); panelin örnek `ReportAggregate` modeli aylık `period` kullanıyor ve örnek verideki simülasyon ödemelerini sayıyor. Gerçek depoda günleri aya toplayıp modele çevir; simülasyon modunda raporların boş çıkması beklenen davranıştır (arayüzde bunu açıkla).
@@ -68,7 +69,6 @@ Yazıldı (`apps/admin_web/lib`): `core/` (biçim/İstanbul saati, Türkçe aram
 
 | Hesap | Dal | Klasör/modül | Başlangıç |
 |---|---|---|---|
-| B | b/admin-members | apps/admin_web (members, roles, registrations) | 2026-10-30 |
 | C | c/backend-core | functions, firebase, tests | 2026-10-29 |
 
 ## Değişiklik istekleri (şema/shared için Hesap A'ya)
@@ -88,3 +88,4 @@ Yazıldı (`apps/admin_web/lib`): `core/` (biçim/İstanbul saati, Türkçe aram
   - Sıradaki (C), ağ erişimli makine gerektirir: (1) `npm install` + vitest ile bu paketi koştur; (2) `firebase-admin`/`firebase-functions` ekle; (3) `src/adapters/sdk.ts`: gerçek `firebase-admin` Firestore'unu `FsDb`/`FsTx`'e saran ince sarmalayıcı (`Timestamp.fromMillis`/`toMillis` ile `Clock`); (4) `src/handlers/`: callable/HTTP sarmalayıcılar (rol claim'i `request.auth.token.role` → `requireRole`; hata `DomainError.code` → `HttpsError`); (5) `tests/rules/` emülatör testleri; (6) sağlayıcı webhook imza doğrulaması Aşama 8'de.
   - Notlar (C → A/B): İstemciye dönen hata kodları `DomainError.code` (+ `reason`) sözleşmesidir; `reason` listesi için `functions/src` içinde `grep -rn "DomainError("`. Kontenjan reason'ları: `sold_out`, `deadline_passed`, `event_not_open`, `already_registered`.
 - 2026-10-30 (hesap B): Dalga 1 admin paneli: ortak `AdminTable` (arama [Türkçe duyarlı], seçenekli filtre, tarih aralığı, sıralama, sayfalama, boş/hata durumu), Genel Bakış (bağış/aidat/etkinlik ayrı kartlar, iade düşülmüş net), liste+form: Kampanyalar, Etkinlikler, Projeler, Haberler/Duyurular; liste+eylem: Aidat (borç atama, manuel ödeme), Ödemeler (iade başlat), İadeler, Denetim, Raporlar (+CSV dışa aktarma arayüzü, `exportFinancialData` bayrağıyla). Veri `AdminRepository` arayüzü + `FakeAdminRepository` (iade üst sınırı, kısmi ödeme, mükerrer işlem kuralları taklit edilir; her ekran `TestDataBanner`lı). Sayaçlar/toplamlar istemciden yazılmaz. DOĞRULANMAMIŞ: hiçbir Flutter komutu çalıştırılamadı (bkz. DOĞRULANMAMIŞ bölümü). Sıradaki (B): kullanıcı makinesinde analyze/test çıktısını düzelt → Dalga 2.
+- 2026-10-30 (hesap B, 2. oturum): Üyeler, Rol ve İzinler, Katılımcı Kayıtları ekranları + sahte depo kuralları + testler. DOĞRULANMAMIŞ (Flutter yok, derlenmedi). Sıradaki (B): kullanıcı makinesinde analyze/test düzeltmeleri; Bildirimler ve Ayarlar; Dalga 2 gerçek depo.

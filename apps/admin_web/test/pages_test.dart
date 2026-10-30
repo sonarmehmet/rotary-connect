@@ -3,9 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:rotary_admin_web/core/role_provider.dart';
 import 'package:rotary_admin_web/features/campaigns/campaigns_page.dart';
+import 'package:rotary_admin_web/features/members/members_page.dart';
 import 'package:rotary_admin_web/features/overview/overview_page.dart';
 import 'package:rotary_admin_web/features/payments/payments_page.dart';
+import 'package:rotary_admin_web/features/registrations/registrations_page.dart';
 import 'package:rotary_admin_web/features/reports/reports_page.dart';
+import 'package:rotary_admin_web/features/roles/roles_page.dart';
 import 'package:rotary_admin_web/ui/admin_table.dart';
 import 'package:rotary_shared/shared.dart';
 
@@ -206,6 +209,42 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.textContaining('satır hazırlandı'), findsOneWidget);
       expect(find.textContaining('odeme_id;'), findsOneWidget);
+    });
+
+    testWidgets('üyeler: bekleyen talep ayrıntısında "Onayla" görünür',
+        (tester) async {
+      _size(tester, 1400, 1000);
+      await _pump(tester, const MembersPage());
+      await tester.tap(find.text('Örnek Aday 7'));
+      await tester.pumpAndSettle();
+      expect(find.text('Onayla'), findsOneWidget);
+    });
+
+    testWidgets('üye onay formu boş üye no ile hata verir', (tester) async {
+      _size(tester, 1400, 1000);
+      await _pump(tester, const MembersPage());
+      await tester.tap(find.text('Örnek Aday 7'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Onayla'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Onayla').last);
+      await tester.pumpAndSettle();
+      expect(find.text('Zorunlu alan'), findsOneWidget);
+    });
+
+    testWidgets('roller: sistem yöneticisi satıra tıklayınca rol atama açılır',
+        (tester) async {
+      _size(tester, 1400, 1000);
+      await _pump(tester, const RolesPage());
+      await tester.tap(find.text('Örnek İçerik Yöneticisi'));
+      await tester.pumpAndSettle();
+      expect(find.text('Rol ata'), findsOneWidget);
+    });
+
+    testWidgets('katılımcı kayıtları listelenir', (tester) async {
+      _size(tester, 1400);
+      await _pump(tester, const RegistrationsPage(), role: AppRole.contentManager);
+      expect(find.text('Örnek Katılımcı A'), findsOneWidget);
     });
   });
 }

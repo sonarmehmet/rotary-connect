@@ -10,20 +10,25 @@ import 'features/audit/audit_page.dart';
 import 'features/campaigns/campaigns_page.dart';
 import 'features/dues/dues_page.dart';
 import 'features/events/events_page.dart';
+import 'features/members/members_page.dart';
 import 'features/news/news_page.dart';
 import 'features/overview/overview_page.dart';
 import 'features/payments/payments_page.dart';
 import 'features/projects/projects_page.dart';
 import 'features/refunds/refunds_page.dart';
+import 'features/registrations/registrations_page.dart';
 import 'features/reports/reports_page.dart';
+import 'features/roles/roles_page.dart';
 import 'ui/state_views.dart';
 
 export 'core/role_provider.dart' show adminRoleProvider;
 
-/// Dalga 1'de uygulanan modüller. Diğerleri (üyeler, roller, kayıtlar,
-/// bildirimler, ayarlar) Dalga 2'de gerçek veriye bağlanırken eklenir.
+/// Uygulanan modüller. Diğerleri (bildirimler, ayarlar) Dalga 2'de eklenir.
 const Map<String, Widget> _pages = {
   '/': OverviewPage(),
+  '/members': MembersPage(),
+  '/roles': RolesPage(),
+  '/registrations': RegistrationsPage(),
   '/dues': DuesPage(),
   '/campaigns': CampaignsPage(),
   '/events': EventsPage(),

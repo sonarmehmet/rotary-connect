@@ -1,3 +1,5 @@
+import 'package:rotary_shared/shared.dart';
+
 import 'models.dart';
 
 /// Panelin veri erişim sözleşmesi.
@@ -48,6 +50,22 @@ abstract class AdminRepository {
 
   /// `issueRefund` callable'ı.
   Future<void> issueRefund(RefundRequest request);
+
+  // --- Üyelik, roller, etkinlik kayıtları ---
+  Future<List<ClubMember>> listClubMembers();
+
+  /// `approveMembership` (yalnızca sistem yöneticisi). Üye no zorunludur.
+  Future<void> approveMembership(String memberId, String memberNo);
+
+  /// `endMembership`: aktif üyeyi askıya al / istifa olarak kapat.
+  Future<void> endMembership(String memberId, MemberStatus to);
+
+  Future<List<AppUserRow>> listUsers();
+
+  /// `assignRole` (yalnızca sistem yöneticisi; audit yazılır).
+  Future<void> assignRole(String userId, AppRole role);
+
+  Future<List<EventRegistration>> listRegistrations();
 
   // --- Denetim ve raporlar ---
   Future<List<AuditLogEntry>> listAuditLogs();

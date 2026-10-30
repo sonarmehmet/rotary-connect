@@ -580,3 +580,92 @@ class ExportRequest {
   /// `null` = tüm tarihler.
   final DateRange? range;
 }
+
+// ---------------------------------------------------------------------------
+// Üyelik, kullanıcı rolleri, etkinlik kayıtları
+// ---------------------------------------------------------------------------
+
+enum MemberStatus {
+  pending('pending', 'Onay bekliyor'),
+  active('active', 'Aktif'),
+  suspended('suspended', 'Askıda'),
+  resigned('resigned', 'İstifa etti');
+
+  const MemberStatus(this.wireName, this.label);
+  final String wireName;
+  final String label;
+}
+
+/// club_members/{id} + users/{userId} görünümü. Yazma: yalnızca Functions.
+class ClubMember {
+  const ClubMember({
+    required this.id,
+    required this.userId,
+    required this.userName,
+    required this.status,
+    required this.requestedAt,
+    this.memberNo,
+    this.joinedAt,
+  });
+
+  final String id;
+  final String userId;
+  final String userName;
+  final MemberStatus status;
+  final String? memberNo;
+  final DateTime requestedAt;
+  final DateTime? joinedAt;
+}
+
+/// Rol atama ekranı için kullanıcı satırı (rol: Auth claim).
+class AppUserRow {
+  const AppUserRow({
+    required this.id,
+    required this.name,
+    required this.role,
+  });
+
+  final String id;
+  final String name;
+  final AppRole role;
+}
+
+enum RegistrationStatus {
+  reserved('reserved', 'Rezerve'),
+  confirmed('confirmed', 'Onaylı'),
+  waitlisted('waitlisted', 'Bekleme listesinde'),
+  cancelled('cancelled', 'İptal'),
+  expired('expired', 'Süresi doldu'),
+  refunded('refunded', 'İade edildi');
+
+  const RegistrationStatus(this.wireName, this.label);
+  final String wireName;
+  final String label;
+}
+
+/// event_registrations/{id}. Yazma: yalnızca Functions.
+class EventRegistration {
+  const EventRegistration({
+    required this.id,
+    required this.eventId,
+    required this.eventTitle,
+    required this.participantName,
+    required this.status,
+    required this.createdAt,
+    this.paymentId,
+    this.reservedUntil,
+    this.waitlistPosition,
+  });
+
+  final String id;
+  final String eventId;
+
+  /// Görüntüleme için çözülmüş etkinlik adı (belgede tutulmaz).
+  final String eventTitle;
+  final String participantName;
+  final RegistrationStatus status;
+  final String? paymentId;
+  final DateTime? reservedUntil;
+  final int? waitlistPosition;
+  final DateTime createdAt;
+}

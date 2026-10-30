@@ -16,6 +16,9 @@ class SampleData {
     required this.payments,
     required this.refunds,
     required this.auditLogs,
+    required this.clubMembers,
+    required this.users,
+    required this.registrations,
   });
 
   final List<Campaign> campaigns;
@@ -27,6 +30,9 @@ class SampleData {
   final List<PaymentRecord> payments;
   final List<RefundRecord> refunds;
   final List<AuditLogEntry> auditLogs;
+  final List<ClubMember> clubMembers;
+  final List<AppUserRow> users;
+  final List<EventRegistration> registrations;
 
   /// Örnek verinin "bugünü": 29 Ekim 2026, 12:00 (İstanbul).
   static final DateTime now = istanbulToInstant(2026, 10, 29, 12);
@@ -43,6 +49,9 @@ class SampleData {
       payments: payments,
       refunds: _refundsFor(payments),
       auditLogs: _auditLogs(),
+      clubMembers: _clubMembers(),
+      users: _users(),
+      registrations: _registrations(),
     );
   }
 }
@@ -553,4 +562,98 @@ List<ReportAggregate> buildAggregates(List<PaymentRecord> payments) {
           : a.kind.wireName.compareTo(b.kind.wireName);
     });
   return list;
+}
+
+List<ClubMember> _clubMembers() => [
+      for (final m in _members())
+        ClubMember(
+          id: m.id,
+          userId: m.userId,
+          userName: m.name,
+          status: MemberStatus.active,
+          memberNo: m.memberNo,
+          requestedAt: _day(2025, 8, 20, 10),
+          joinedAt: _day(2025, 9, 1, 10),
+        ),
+      ClubMember(
+        id: 'mem_7',
+        userId: 'usr_7',
+        userName: 'Örnek Aday 7',
+        status: MemberStatus.pending,
+        requestedAt: _day(2026, 10, 27, 14),
+      ),
+      ClubMember(
+        id: 'mem_8',
+        userId: 'usr_8',
+        userName: 'Örnek Aday 8',
+        status: MemberStatus.pending,
+        requestedAt: _day(2026, 10, 28, 9),
+      ),
+    ];
+
+List<AppUserRow> _users() => [
+      const AppUserRow(
+        id: 'usr_admin_1',
+        name: 'Örnek Sistem Yöneticisi',
+        role: AppRole.systemAdmin,
+      ),
+      const AppUserRow(
+        id: 'usr_fin_1',
+        name: 'Örnek Finans Yöneticisi',
+        role: AppRole.financeManager,
+      ),
+      const AppUserRow(
+        id: 'usr_content_1',
+        name: 'Örnek İçerik Yöneticisi',
+        role: AppRole.contentManager,
+      ),
+      for (final m in _members())
+        AppUserRow(id: m.userId, name: m.name, role: AppRole.clubMember),
+      const AppUserRow(
+        id: 'usr_7',
+        name: 'Örnek Aday 7',
+        role: AppRole.registeredUser,
+      ),
+      const AppUserRow(
+        id: 'usr_8',
+        name: 'Örnek Aday 8',
+        role: AppRole.registeredUser,
+      ),
+    ];
+
+List<EventRegistration> _registrations() {
+  const names = [
+    'Örnek Katılımcı A',
+    'Örnek Katılımcı B',
+    'Örnek Katılımcı C',
+    'Örnek Katılımcı D',
+    'Örnek Katılımcı E',
+    'Örnek Katılımcı F',
+  ];
+  const statuses = [
+    RegistrationStatus.confirmed,
+    RegistrationStatus.confirmed,
+    RegistrationStatus.reserved,
+    RegistrationStatus.waitlisted,
+    RegistrationStatus.cancelled,
+    RegistrationStatus.expired,
+  ];
+  return [
+    for (var i = 0; i < names.length; i++)
+      EventRegistration(
+        id: 'reg_${i + 1}',
+        eventId: 'evt_1',
+        eventTitle: 'Yıllık Dayanışma Yemeği',
+        participantName: names[i],
+        status: statuses[i],
+        paymentId: statuses[i] == RegistrationStatus.confirmed
+            ? 'pay_00${i + 1}'
+            : null,
+        reservedUntil: statuses[i] == RegistrationStatus.reserved
+            ? SampleData.now.add(const Duration(minutes: 10))
+            : null,
+        waitlistPosition: statuses[i] == RegistrationStatus.waitlisted ? 1 : null,
+        createdAt: SampleData.now.subtract(Duration(days: 6 - i)),
+      ),
+  ];
 }

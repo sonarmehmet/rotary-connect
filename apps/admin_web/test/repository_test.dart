@@ -289,5 +289,61 @@ void main() {
       );
       expect(csv.contains('Örnek Üye'), isFalse);
     });
+
+    test('üyelik onayı: üye no zorunlu, yalnızca bekleyen, rol club_member olur',
+        () async {
+      await expectLater(
+        repo.approveMembership('mem_7', '  '),
+        throwsCode('invalid-argument'),
+      );
+      await expectLater(
+        repo.approveMembership('mem_1', 'ÜY-9999'), // zaten aktif
+        throwsCode('failed-precondition'),
+      );
+      await expectLater(
+        repo.approveMembership('mem_7', 'ÜY-0001'), // numara kullanımda
+        throwsCode('already-exists'),
+      );
+      await repo.approveMembership('mem_7', 'ÜY-0007');
+      final m = (await repo.listClubMembers()).firstWhere((m) => m.id == 'mem_7');
+      expect(m.status, MemberStatus.active);
+      expect(m.memberNo, 'ÜY-0007');
+      final u = (await repo.listUsers()).firstWhere((u) => u.id == 'usr_7');
+      expect(u.role, AppRole.clubMember);
+      expect((await repo.listAuditLogs()).first.action, 'club_member.approve');
+    });
+
+    test('üyelik sonlanınca rol düşer; yalnızca aktif üyelik sonlandırılır',
+        () async {
+      await repo.endMembership('mem_1', MemberStatus.suspended);
+      final u = (await repo.listUsers()).firstWhere((u) => u.id == 'usr_1');
+      expect(u.role, AppRole.registeredUser);
+      await expectLater(
+        repo.endMembership('mem_1', MemberStatus.resigned),
+        throwsCode('failed-precondition'),
+      );
+      await expectLater(
+        repo.endMembership('mem_2', MemberStatus.active),
+        throwsCode('invalid-argument'),
+      );
+    });
+
+    test('rol atama: denetim kaydı, aynı rol reddi, son yönetici korunur',
+        () async {
+      await repo.assignRole('usr_content_1', AppRole.financeManager);
+      expect(
+        (await repo.listUsers()).firstWhere((u) => u.id == 'usr_content_1').role,
+        AppRole.financeManager,
+      );
+      expect((await repo.listAuditLogs()).first.action, 'role.assign');
+      await expectLater(
+        repo.assignRole('usr_content_1', AppRole.financeManager),
+        throwsCode('failed-precondition'),
+      );
+      await expectLater(
+        repo.assignRole('usr_admin_1', AppRole.registeredUser),
+        throwsCode('failed-precondition'),
+      );
+    });
   });
 }

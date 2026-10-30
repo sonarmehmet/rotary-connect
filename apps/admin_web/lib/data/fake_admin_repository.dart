@@ -24,6 +24,9 @@ class FakeAdminRepository implements AdminRepository {
     _payments = List.of(d.payments);
     _refunds = List.of(d.refunds);
     _audit = List.of(d.auditLogs);
+    _clubMembers = List.of(d.clubMembers);
+    _users = List.of(d.users);
+    _registrations = List.of(d.registrations);
   }
 
   final DateTime Function() _clock;
@@ -36,6 +39,9 @@ class FakeAdminRepository implements AdminRepository {
   late final List<PaymentRecord> _payments;
   late final List<RefundRecord> _refunds;
   late final List<AuditLogEntry> _audit;
+  late final List<ClubMember> _clubMembers;
+  late final List<AppUserRow> _users;
+  late final List<EventRegistration> _registrations;
   final Set<String> _manualKeys = {};
   int _seq = 1000;
 
@@ -355,6 +361,155 @@ class FakeAdminRepository implements AdminRepository {
       after: {'refundedMinor': refundedTotal},
     );
   }
+
+  // --- Üyelik, roller, etkinlik kayıtları ------------------------------------
+
+  @override
+  Future<List<ClubMember>> listClubMembers() async => List.of(_clubMembers);
+
+  int _memberIndex(String memberId) {
+    final i = _clubMembers.indexWhere((m) => m.id == memberId);
+    if (i < 0) {
+      throw const AdminException('failed-precondition', 'Üye kaydı bulunamadı.');
+    }
+    return i;
+  }
+
+  ClubMember _copyMember(
+    ClubMember m, {
+    MemberStatus? status,
+    String? memberNo,
+    DateTime? joinedAt,
+  }) =>
+      ClubMember(
+        id: m.id,
+        userId: m.userId,
+        userName: m.userName,
+        status: status ?? m.status,
+        requestedAt: m.requestedAt,
+        memberNo: memberNo ?? m.memberNo,
+        joinedAt: joinedAt ?? m.joinedAt,
+      );
+
+  /// Yönetici rolü (içerik/finans/sistem) üyelik değişiminde korunur
+  /// (functions/src/members/members.ts ile aynı kural).
+  bool _isStaff(AppRole r) =>
+      r == AppRole.contentManager ||
+      r == AppRole.financeManager ||
+      r == AppRole.systemAdmin;
+
+  void _setRole(String userId, AppRole role) {
+    final i = _users.indexWhere((u) => u.id == userId);
+    if (i < 0) return;
+    final u = _users[i];
+    _users[i] = AppUserRow(id: u.id, name: u.name, role: role);
+  }
+
+  @override
+  Future<void> approveMembership(String memberId, String memberNo) async {
+    final i = _memberIndex(memberId);
+    final m = _clubMembers[i];
+    if (m.status != MemberStatus.pending) {
+      throw const AdminException(
+        'failed-precondition',
+        'Yalnızca bekleyen talepler onaylanabilir.',
+      );
+    }
+    if (memberNo.trim().isEmpty) {
+      throw const AdminException('invalid-argument', 'Üye numarası gerekli.');
+    }
+    final taken = _clubMembers.any(
+      (x) => x.memberNo?.toLowerCase() == memberNo.trim().toLowerCase(),
+    );
+    if (taken) {
+      throw const AdminException(
+        'already-exists',
+        'Bu üye numarası zaten kullanılıyor.',
+      );
+    }
+    _clubMembers[i] = _copyMember(
+      m,
+      status: MemberStatus.active,
+      memberNo: memberNo.trim(),
+      joinedAt: _clock(),
+    );
+    final user = _users.where((u) => u.id == m.userId);
+    if (user.isNotEmpty && !_isStaff(user.first.role)) {
+      _setRole(m.userId, AppRole.clubMember);
+    }
+    _log(
+      'club_member.approve',
+      'club_member',
+      memberId,
+      before: {'status': 'pending'},
+      after: {'status': 'active'},
+    );
+  }
+
+  @override
+  Future<void> endMembership(String memberId, MemberStatus to) async {
+    if (to != MemberStatus.suspended && to != MemberStatus.resigned) {
+      throw const AdminException('invalid-argument', 'Geçersiz üyelik durumu.');
+    }
+    final i = _memberIndex(memberId);
+    final m = _clubMembers[i];
+    if (m.status != MemberStatus.active) {
+      throw const AdminException(
+        'failed-precondition',
+        'Yalnızca aktif üyelik sonlandırılabilir.',
+      );
+    }
+    _clubMembers[i] = _copyMember(m, status: to);
+    final user = _users.where((u) => u.id == m.userId);
+    if (user.isNotEmpty && !_isStaff(user.first.role)) {
+      _setRole(m.userId, AppRole.registeredUser);
+    }
+    _log(
+      'club_member.end',
+      'club_member',
+      memberId,
+      before: {'status': 'active'},
+      after: {'status': to.wireName},
+    );
+  }
+
+  @override
+  Future<List<AppUserRow>> listUsers() async => List.of(_users);
+
+  @override
+  Future<void> assignRole(String userId, AppRole role) async {
+    final i = _users.indexWhere((u) => u.id == userId);
+    if (i < 0) {
+      throw const AdminException('failed-precondition', 'Kullanıcı bulunamadı.');
+    }
+    final old = _users[i].role;
+    if (old == role) {
+      throw const AdminException(
+        'failed-precondition',
+        'Kullanıcı zaten bu role sahip.',
+      );
+    }
+    // Son sistem yöneticisi düşürülemez (panel kilitlenmesini önler).
+    if (old == AppRole.systemAdmin &&
+        _users.where((u) => u.role == AppRole.systemAdmin).length == 1) {
+      throw const AdminException(
+        'failed-precondition',
+        'Son sistem yöneticisinin rolü değiştirilemez.',
+      );
+    }
+    _setRole(userId, role);
+    _log(
+      'role.assign',
+      'user',
+      userId,
+      before: {'role': old.wireName},
+      after: {'role': role.wireName},
+    );
+  }
+
+  @override
+  Future<List<EventRegistration>> listRegistrations() async =>
+      List.of(_registrations);
 
   // --- Denetim ve raporlar ------------------------------------------------------
 
