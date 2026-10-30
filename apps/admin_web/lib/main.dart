@@ -19,16 +19,18 @@ import 'features/refunds/refunds_page.dart';
 import 'features/registrations/registrations_page.dart';
 import 'features/reports/reports_page.dart';
 import 'features/roles/roles_page.dart';
+import 'features/settings/settings_page.dart';
 import 'ui/state_views.dart';
 
 export 'core/role_provider.dart' show adminRoleProvider;
 
-/// Uygulanan modüller. Diğerleri (bildirimler, ayarlar) Dalga 2'de eklenir.
+/// Uygulanan modüller. Bildirimler Dalga 2'de eklenir (veri sözleşmesi yok).
 const Map<String, Widget> _pages = {
   '/': OverviewPage(),
   '/members': MembersPage(),
   '/roles': RolesPage(),
   '/registrations': RegistrationsPage(),
+  '/settings': SettingsPage(),
   '/dues': DuesPage(),
   '/campaigns': CampaignsPage(),
   '/events': EventsPage(),

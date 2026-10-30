@@ -669,3 +669,51 @@ class EventRegistration {
   final int? waitlistPosition;
   final DateTime createdAt;
 }
+
+// ---------------------------------------------------------------------------
+// Uygulama ayarları (app_settings/public)
+// ---------------------------------------------------------------------------
+
+/// app_settings/public. Yazma: yalnızca sistem yöneticisi.
+/// `paymentMode` panelden DEĞİŞTİRİLMEZ (canlı geçiş sağlayıcı kararına bağlı).
+class AppSettings {
+  const AppSettings({
+    required this.clubName,
+    required this.contact,
+    required this.reservationMinutes,
+    required this.donationQuickAmountsMinor,
+    required this.partialDuesEnabled,
+    required this.recurringDonationEnabled,
+    required this.paymentMode,
+  });
+
+  final String clubName;
+  final String contact;
+  final int reservationMinutes;
+  final List<int> donationQuickAmountsMinor;
+  final bool partialDuesEnabled;
+  final bool recurringDonationEnabled;
+
+  /// `simulation` | `live`.
+  final String paymentMode;
+
+  AppSettings copyWith({
+    String? clubName,
+    String? contact,
+    int? reservationMinutes,
+    List<int>? donationQuickAmountsMinor,
+    bool? partialDuesEnabled,
+    bool? recurringDonationEnabled,
+  }) =>
+      AppSettings(
+        clubName: clubName ?? this.clubName,
+        contact: contact ?? this.contact,
+        reservationMinutes: reservationMinutes ?? this.reservationMinutes,
+        donationQuickAmountsMinor:
+            donationQuickAmountsMinor ?? this.donationQuickAmountsMinor,
+        partialDuesEnabled: partialDuesEnabled ?? this.partialDuesEnabled,
+        recurringDonationEnabled:
+            recurringDonationEnabled ?? this.recurringDonationEnabled,
+        paymentMode: paymentMode,
+      );
+}

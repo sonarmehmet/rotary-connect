@@ -53,7 +53,8 @@ Yazıldı (`apps/admin_web/lib`): `core/` (biçim/İstanbul saati, Türkçe aram
 - Rol filtresi: menü + rota düzeyinde (yetkisiz rota `NoAccessView`); yazma düğmeleri izne göre gizlenir. Asıl yetki sunucudadır.
 - CSV: Dalga 1'de önizleme + panoya kopyala (dosya indirme Dalga 2'de `exportReport` ile bağlanacak). Formül enjeksiyonu önlemi, `;` ayraç, UTF-8 BOM, kişisel veri yok.
 - Üyeler (onay/askıya alma/istifa), Rol ve İzinler (rol atama; son sistem yöneticisi korunur; club_member yalnızca üyelik onayıyla) ve Katılımcı Kayıtları (salt okunur) eklendi; sahte depo `functions/src/members/members.ts` kurallarını taklit eder.
-- Henüz placeholder: Bildirimler, Uygulama Ayarları (Dalga 2).
+- Uygulama Ayarları eklendi (yalnızca sistem yöneticisi; rezervasyon süresi, hızlı bağış tutarları, kısmi aidat, düzenli bağış; `paymentMode` panelden DEĞİŞTİRİLMEZ, salt okunur gösterilir).
+- Henüz placeholder: Bildirimler (`notifications` yalnızca Functions yazar; panel için veri sözleşmesi/gönderim callable'ı tanımlanmadı → Hesap A/C ile netleştirilmeli).
 
 **Dalga 2 için notlar (B → kendim / C):**
 - `report_aggregates` gerçekte GÜNLÜK satır (`day`) ve SİMÜLASYON ödemelerini DIŞLAR (`functions/src/reports/aggregates.ts`); panelin örnek `ReportAggregate` modeli aylık `period` kullanıyor ve örnek verideki simülasyon ödemelerini sayıyor. Gerçek depoda günleri aya toplayıp modele çevir; simülasyon modunda raporların boş çıkması beklenen davranıştır (arayüzde bunu açıkla).
@@ -69,7 +70,6 @@ Yazıldı (`apps/admin_web/lib`): `core/` (biçim/İstanbul saati, Türkçe aram
 
 | Hesap | Dal | Klasör/modül | Başlangıç |
 |---|---|---|---|
-| B | b/admin-settings | apps/admin_web (settings) | 2026-10-30 |
 | C | c/backend-core | functions, firebase, tests | 2026-10-29 |
 
 ## Değişiklik istekleri (şema/shared için Hesap A'ya)
@@ -90,3 +90,4 @@ Yazıldı (`apps/admin_web/lib`): `core/` (biçim/İstanbul saati, Türkçe aram
   - Notlar (C → A/B): İstemciye dönen hata kodları `DomainError.code` (+ `reason`) sözleşmesidir; `reason` listesi için `functions/src` içinde `grep -rn "DomainError("`. Kontenjan reason'ları: `sold_out`, `deadline_passed`, `event_not_open`, `already_registered`.
 - 2026-10-30 (hesap B): Dalga 1 admin paneli: ortak `AdminTable` (arama [Türkçe duyarlı], seçenekli filtre, tarih aralığı, sıralama, sayfalama, boş/hata durumu), Genel Bakış (bağış/aidat/etkinlik ayrı kartlar, iade düşülmüş net), liste+form: Kampanyalar, Etkinlikler, Projeler, Haberler/Duyurular; liste+eylem: Aidat (borç atama, manuel ödeme), Ödemeler (iade başlat), İadeler, Denetim, Raporlar (+CSV dışa aktarma arayüzü, `exportFinancialData` bayrağıyla). Veri `AdminRepository` arayüzü + `FakeAdminRepository` (iade üst sınırı, kısmi ödeme, mükerrer işlem kuralları taklit edilir; her ekran `TestDataBanner`lı). Sayaçlar/toplamlar istemciden yazılmaz. DOĞRULANMAMIŞ: hiçbir Flutter komutu çalıştırılamadı (bkz. DOĞRULANMAMIŞ bölümü). Sıradaki (B): kullanıcı makinesinde analyze/test çıktısını düzelt → Dalga 2.
 - 2026-10-30 (hesap B, 2. oturum): Üyeler, Rol ve İzinler, Katılımcı Kayıtları ekranları + sahte depo kuralları + testler. DOĞRULANMAMIŞ (Flutter yok, derlenmedi). Sıradaki (B): kullanıcı makinesinde analyze/test düzeltmeleri; Bildirimler ve Ayarlar; Dalga 2 gerçek depo.
+- 2026-10-30 (hesap B, 3. oturum): Uygulama Ayarları ekranı + sahte depo doğrulaması + testler. DOĞRULANMAMIŞ (Flutter yok). Kalan: Bildirimler (sözleşme bekliyor), kullanıcı makinesinde analyze/test, Dalga 2.

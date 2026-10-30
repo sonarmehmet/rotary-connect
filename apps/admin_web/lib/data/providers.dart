@@ -56,6 +56,10 @@ final registrationsProvider =
   (ref) => ref.watch(adminRepositoryProvider).listRegistrations(),
 );
 
+final settingsProvider = FutureProvider.autoDispose<AppSettings>(
+  (ref) => ref.watch(adminRepositoryProvider).getSettings(),
+);
+
 final auditLogsProvider = FutureProvider.autoDispose<List<AuditLogEntry>>(
   (ref) => ref.watch(adminRepositoryProvider).listAuditLogs(),
 );

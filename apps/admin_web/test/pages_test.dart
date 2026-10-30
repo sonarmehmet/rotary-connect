@@ -9,6 +9,7 @@ import 'package:rotary_admin_web/features/payments/payments_page.dart';
 import 'package:rotary_admin_web/features/registrations/registrations_page.dart';
 import 'package:rotary_admin_web/features/reports/reports_page.dart';
 import 'package:rotary_admin_web/features/roles/roles_page.dart';
+import 'package:rotary_admin_web/features/settings/settings_page.dart';
 import 'package:rotary_admin_web/ui/admin_table.dart';
 import 'package:rotary_shared/shared.dart';
 
@@ -245,6 +246,20 @@ void main() {
       _size(tester, 1400);
       await _pump(tester, const RegistrationsPage(), role: AppRole.contentManager);
       expect(find.text('Örnek Katılımcı A'), findsOneWidget);
+    });
+
+    testWidgets('ayarlar: sistem yöneticisi formu görür, ödeme modu salt okunur',
+        (tester) async {
+      _size(tester, 1400, 1000);
+      await _pump(tester, const SettingsPage());
+      expect(find.text('Kulüp adı'), findsOneWidget);
+      expect(find.textContaining('Ödeme modu: Simülasyon'), findsOneWidget);
+    });
+
+    testWidgets('ayarlar: finans yöneticisi göremez', (tester) async {
+      _size(tester, 1400, 1000);
+      await _pump(tester, const SettingsPage(), role: AppRole.financeManager);
+      expect(find.text('Bu sayfayı görüntüleme yetkiniz yok.'), findsOneWidget);
     });
   });
 }

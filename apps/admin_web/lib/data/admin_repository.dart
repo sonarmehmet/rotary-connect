@@ -67,6 +67,12 @@ abstract class AdminRepository {
 
   Future<List<EventRegistration>> listRegistrations();
 
+  // --- Ayarlar (yazma: yalnızca sistem yöneticisi) ---
+  Future<AppSettings> getSettings();
+
+  /// `paymentMode` istemciden değiştirilemez; gönderilse de yok sayılır.
+  Future<void> saveSettings(AppSettings settings);
+
   // --- Denetim ve raporlar ---
   Future<List<AuditLogEntry>> listAuditLogs();
   Future<List<ReportAggregate>> listAggregates();

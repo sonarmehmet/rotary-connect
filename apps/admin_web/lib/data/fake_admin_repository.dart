@@ -43,6 +43,15 @@ class FakeAdminRepository implements AdminRepository {
   late final List<AppUserRow> _users;
   late final List<EventRegistration> _registrations;
   final Set<String> _manualKeys = {};
+  AppSettings _settings = const AppSettings(
+    clubName: 'Örnek Rotary Kulübü',
+    contact: 'iletisim@ornek.invalid',
+    reservationMinutes: 15,
+    donationQuickAmountsMinor: [25000, 50000, 100000, 250000],
+    partialDuesEnabled: true,
+    recurringDonationEnabled: false,
+    paymentMode: 'simulation',
+  );
   int _seq = 1000;
 
   String _nextId(String prefix) => '${prefix}_${_seq++}';
@@ -510,6 +519,47 @@ class FakeAdminRepository implements AdminRepository {
   @override
   Future<List<EventRegistration>> listRegistrations() async =>
       List.of(_registrations);
+
+  // --- Ayarlar ---------------------------------------------------------------
+
+  @override
+  Future<AppSettings> getSettings() async => _settings;
+
+  @override
+  Future<void> saveSettings(AppSettings settings) async {
+    if (settings.clubName.trim().isEmpty) {
+      throw const AdminException('invalid-argument', 'Kulüp adı boş olamaz.');
+    }
+    if (settings.reservationMinutes < 5 || settings.reservationMinutes > 120) {
+      throw const AdminException(
+        'invalid-argument',
+        'Rezervasyon süresi 5 ile 120 dakika arasında olmalı.',
+      );
+    }
+    final amounts = settings.donationQuickAmountsMinor;
+    final valid = amounts.isNotEmpty &&
+        amounts.length <= 6 &&
+        amounts.every((a) => a >= 100) &&
+        amounts.toSet().length == amounts.length;
+    if (!valid) {
+      throw const AdminException(
+        'invalid-argument',
+        'Hızlı bağış tutarları: 1-6 adet, her biri en az 1 ₺, tekrarsız.',
+      );
+    }
+    final sorted = [...amounts]..sort();
+    // paymentMode sunucuda belirlenir; istemci değeri yok sayılır.
+    _settings = AppSettings(
+      clubName: settings.clubName.trim(),
+      contact: settings.contact.trim(),
+      reservationMinutes: settings.reservationMinutes,
+      donationQuickAmountsMinor: sorted,
+      partialDuesEnabled: settings.partialDuesEnabled,
+      recurringDonationEnabled: settings.recurringDonationEnabled,
+      paymentMode: _settings.paymentMode,
+    );
+    _log('settings.update', 'app_settings', 'public');
+  }
 
   // --- Denetim ve raporlar ------------------------------------------------------
 

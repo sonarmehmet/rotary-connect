@@ -3,6 +3,7 @@ import 'package:rotary_admin_web/core/admin_exception.dart';
 import 'package:rotary_admin_web/core/csv.dart';
 import 'package:rotary_admin_web/core/format.dart';
 import 'package:rotary_admin_web/core/text.dart';
+import 'package:rotary_admin_web/features/settings/settings_page.dart';
 import 'package:rotary_admin_web/ui/table_logic.dart';
 
 void main() {
@@ -130,6 +131,20 @@ void main() {
         'Kontenjan dolu.',
       );
       expect(errorMessageTr(StateError('iç ayrıntı')), isNot(contains('iç ayrıntı')));
+    });
+  });
+
+  group('hızlı bağış tutarı ayrıştırma', () {
+    test('geçerli girdiler', () {
+      expect(parseQuickAmounts('250; 500; 1.000'), [25000, 50000, 100000]);
+      expect(parseQuickAmounts(' 250 ;'), [25000]);
+    });
+
+    test('geçersiz girdiler', () {
+      expect(parseQuickAmounts(''), isNull);
+      expect(parseQuickAmounts('abc'), isNull);
+      expect(parseQuickAmounts('250,50'), isNull); // ondalık yok
+      expect(parseQuickAmounts('250; x'), isNull);
     });
   });
 }

@@ -345,5 +345,33 @@ void main() {
         throwsCode('failed-precondition'),
       );
     });
+
+    test('ayarlar: doğrulama, sıralama, paymentMode korunur, denetim kaydı',
+        () async {
+      final old = await repo.getSettings();
+      await expectLater(
+        repo.saveSettings(old.copyWith(reservationMinutes: 2)),
+        throwsCode('invalid-argument'),
+      );
+      await expectLater(
+        repo.saveSettings(old.copyWith(donationQuickAmountsMinor: [100, 100])),
+        throwsCode('invalid-argument'),
+      );
+      await expectLater(
+        repo.saveSettings(old.copyWith(clubName: '  ')),
+        throwsCode('invalid-argument'),
+      );
+      await repo.saveSettings(
+        old.copyWith(
+          reservationMinutes: 20,
+          donationQuickAmountsMinor: [50000, 25000],
+        ),
+      );
+      final now = await repo.getSettings();
+      expect(now.reservationMinutes, 20);
+      expect(now.donationQuickAmountsMinor, [25000, 50000]);
+      expect(now.paymentMode, 'simulation');
+      expect((await repo.listAuditLogs()).first.action, 'settings.update');
+    });
   });
 }
