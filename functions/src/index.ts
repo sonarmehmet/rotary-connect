@@ -65,5 +65,10 @@ export { runExpireReservations, runDueMaintenance, runReconcile } from "./jobs/s
 export type { OpenEventSource, DueSource, DueSink, DueRow, ExpireReport, DueJobReport } from "./jobs/scheduled";
 export { FirestoreAdminTxRunner, FirestoreDuesTxRunner, FirestoreRefundTxRunner, FirestoreExportReader, FirestoreAuditSink } from "./adapters/adminFirestore";
 export type { AuthRolePort } from "./adapters/adminFirestore";
-// Dağıtılan callable'lar (firebase-functions): yönetim paneli.
-export { assignRole, approveMembership, endMembership, assignDues, issueRefund, exportReport } from "./callables";
+export { IyzicoProvider, iyzicoHppSignature, verifyIyzicoHppSignature, parseIyzicoWebhook, minorToPrice, priceToMinor } from "./payments/iyzico";
+export type { IyzicoHttp, IyzicoBuyer, IyzicoOptions, IyzicoWebhookPayload } from "./payments/iyzico";
+export { handleIyzicoWebhook } from "./handlers/iyzicoWebhook";
+export type { IyzicoWebhookDeps } from "./handlers/iyzicoWebhook";
+export type { ProviderResult } from "./payments/provider";
+export { executeAccountDeletion, ANONYMIZE_PATCHES } from "./privacy/executeDeletion";
+export type { PersonalDataStore, AuthAdmin, DeletionResult } from "./privacy/executeDeletion";

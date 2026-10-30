@@ -35,12 +35,15 @@ Callable sözleşmesi (DATA_MODEL.md) — "mantık" = test edilmiş iş kuralı,
 - [x] Ödeme sonucu etkileri (borç, bağış, kampanya toplamı, etkinlik kaydı, bildirim)
 - [x] Firestore adaptörleri (etkinlik, ödeme, ödeme etkileri; sahte Firestore ile test)
 - [x] startDuePayment / startEventFeePayment işleyicileri, webhook→etkiler akışı (`pipeline.ts`), etki tarama (`sweepEffects`)
-- [ ] firebase-admin SDK sarmalayıcısı (`adapters/sdk.ts`)       - [ ] onCall/HTTP sarmalayıcıları (`src/handlers` → Firebase)
+- [x] firebase-admin SDK sarmalayıcısı (`src/firebase/sdk.ts`, `stores.ts`) ve onCall/HTTP/onSchedule bağlantısı (`src/firebase/main.ts`) — YAZILDI ama DERLENMEDİ (paketler kurulamadı)
+- [ ] B'nin adminOps işleyicileri (assignRole, approve/endMembership, assignDues, issueRefund, exportReport) için Firestore port uygulamaları + onCall bağlantısı
 - [x] Zamanlanmış iş gövdeleri (`jobs/scheduled.ts`: rezervasyon süresi, aidat gecikme/hatırlatma, mutabakat); `onSchedule` bağlantısı YOK
-- [ ] Firestore kuralları emülatör testleri (`tests/rules/`)
+- [x] Firestore kuralları emülatör testleri (`tests/rules/`) — yazıldı, ÇALIŞTIRILMADI
+- [x] iyzico adaptörü (oturum, sonuç sorgusu, V3 HPP imza, webhook işleyici) — sandbox'ta DENENMEDİ
+- [x] KVKK silme yürütücüsü (`privacy/executeDeletion.ts`; talep → `deletion_requests`, saatlik iş)
 
 ## Ortak
 - [x] packages/shared (Money, roller, ödeme durumu, renkler)
-- [ ] Ödeme sağlayıcı seçimi ve entegrasyonu (KULLANICI KARARI bekliyor)
+- [x] Ödeme sağlayıcı seçimi: iyzico (bkz. DECISIONS #7); iade (para iadesi) çağrısı iyzico tarafında HENÜZ YOK
 - [ ] KVKK/gizlilik/iade metin taslakları (hukuk onayı gerekir)
 - [ ] Android/iOS derleme ve yayın hazırlığı

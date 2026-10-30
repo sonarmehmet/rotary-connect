@@ -84,6 +84,11 @@ Yazıldı (`apps/admin_web/lib`): `core/` (biçim/İstanbul saati, Türkçe aram
 
 ## Oturum kayıtları
 
+- 2026-10-30 (hesap C, 4): Karar: ödeme sağlayıcı = iyzico (DECISIONS #7). `payments/iyzico.ts` + `handlers/iyzicoWebhook.ts`; `PaymentProvider.getResult` (tutar sağlayıcıdan; mutabakat artık kendi kaydıyla onaylamaz). `privacy/executeDeletion.ts`. `src/firebase/` (sdk, stores, iyzicoHttp, main) ve `package.json` `main: lib/firebase/main.js`, bağımlılıklar firebase-admin/firebase-functions. `tests/rules/`. Backend 210 test geçti (yerel çatı). DOĞRULANMAMIŞ: `src/firebase/*` hiç derlenmedi; iyzico alan adları/IYZWSv2 imzası sandbox'ta denenmedi; kural testleri çalışmadı.
+  - Kurulum (kullanıcı): `cd functions && npm install && npm run build` (derleme hatalarını C'ye yapıştır), `firebase functions:secrets:set IYZICO_API_KEY` ve `IYZICO_SECRET_KEY`, `PAYMENT_MODE=simulation` (varsayılan). Canlıya geçmeden: iyzico sandbox uçtan uca, imza özelliği hesapta açık olmalı, webhook URL = `iyzicoWebhook` işlevi.
+  - Simülasyonda ödeme sonucu için `simulatePaymentResult` callable'ı (yalnızca system_admin, canlıda kapalı).
+  - Silme talepleri `deletion_requests` (open/blocked → saatlik iş → done); kural varsayılan kapalı.
+
 - 2026-10-30 (hesap C, 3): `getDonationReceiptHandler` (sahip veya misafir bağış no + e-posta; yoksa/yanlışsa aynı hata), `requestAccountDeletionHandler` (engel varsa reddeder, talep idempotent, denetim yazar; gerçek anonimleştirme/Auth silme yürütücüsü HENÜZ YOK), `jobs/scheduled.ts` (runExpireReservations, runDueMaintenance, runReconcile). Mobil: bildirim listesi ve ücretli etkinlikte ödeme adımı. Backend 198 test geçti (yerel çatı). Flutter DOĞRULANMAMIŞ.
 
 - 2026-10-30 (hesap C, 2): Bağış Kayıtları admin ekranı (anonim gizleme, e-posta maskeleme). Backend: `FirestoreEffectsTxRunner` (koleksiyon `effect_markers` yalnızca sunucu; kurallar varsayılan kapalı), `handleProviderEvent` (webhook→etkiler), `sweepEffects` (zamanlanmış tarama kaynağı `SucceededPaymentSource` Firestore'da `status==succeeded` sorgusuyla yazılmalı), `startDuePaymentHandler`/`startEventFeePaymentHandler` (okuyucular `DueReader`/`RegistrationReader` Firestore'da yazılmalı). Yerel test çatısında 188 backend testi geçti. Flutter kodu DOĞRULANMAMIŞ.

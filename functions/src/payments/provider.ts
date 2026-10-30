@@ -16,12 +16,25 @@ export interface PaymentSession {
   readonly simulated: boolean;
 }
 
+/** Sağlayıcının sunucu-sunucu bildirdiği kesin sonuç (tutar dahil). */
+export interface ProviderResult {
+  readonly status: PaymentStatus;
+  readonly amountMinor: number | null;
+  readonly currency: string | null;
+  readonly failureCode?: string;
+}
+
 /** Sağlayıcıdan bağımsız arayüz. Gerçek sağlayıcı (iyzico/PayTR) Aşama 8'de eklenir. */
 export interface PaymentProvider {
   readonly name: string;
   createSession(input: CreateSessionInput): Promise<PaymentSession>;
   /** Sağlayıcıdan sunucu-sunucu durum sorgusu (webhook gelmezse mutabakat için). */
   getStatus(providerRef: string): Promise<PaymentStatus>;
+  /**
+   * Durum + SAĞLAYICININ bildirdiği tutar. Varsa webhook ve mutabakat BUNU kullanır (tutar
+   * doğrulaması sağlayıcıdan gelir, kendi kaydımızdan değil). Yoksa yalnızca simülasyon içindir.
+   */
+  getResult?(providerRef: string): Promise<ProviderResult>;
 }
 
 /** Sağlayıcı yapılandırılana kadar kullanılan simülasyon. Para hareketi YAPMAZ. */

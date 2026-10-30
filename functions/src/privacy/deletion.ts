@@ -40,7 +40,7 @@ export function planAccountDeletion(i: DeletionInput): DeletionPlan {
   };
 }
 
-const ANON = "silinmiş-kullanıcı";
+export const ANON = "silinmiş-kullanıcı";
 
 /** Bir kayıttaki kişisel alanları temizler; tutar/tarih/durum gibi finansal alanlar korunur. */
 export function anonymizeRecord<T extends Record<string, unknown>>(rec: T): T {

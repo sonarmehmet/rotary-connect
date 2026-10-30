@@ -8,6 +8,6 @@
 | 4 | Para: kuruş tamsayı + currency | Kayan nokta hatası yok | Onaylı |
 | 5 | Rol: Auth custom claim `role` | Kurallar ve Functions aynı kaynağı okur | Onaylı |
 | 6 | Raporlar önceden toplanmış (aggregate) belgelerden | Firestore'da ağır toplama sorguları pahalı/yavaş | Plan |
-| 7 | Ödeme sağlayıcı | iyzico / PayTR adayları; Stripe Türkiye durumu teyide muhtaç | **AÇIK — kullanıcı onayı gerekir** |
+| 7 | Ödeme sağlayıcı | **iyzico (Checkout Form / HPP)** seçildi (2026-10-30, kullanıcı kararı delege etti). Webhook imzası X-IYZ-SIGNATURE-V3; tutar webhook gövdesinden değil iyzico'dan sunucu-sunucu sorgulanır. Gerekçe: Türkiye'de yerleşik, dernek/kulüp için yaygın, imzalı webhook. Sözleşme/komisyon ve iyzico hesabı (sandbox → canlı) kullanıcı tarafından açılmalı. PayTR yedek aday. | **KARAR VERİLDİ — iyzico sandbox ile denenmedi** |
 | 8 | Kontenjan: transaction + süreli rezervasyon (öneri 15 dk) | Aşırı kayıt önleme | Plan (Aşama 7) |
 | 9 | Üyelik doğrulama yönetici onayıyla `club_member` claim'i | Kayıt = üye değildir | Plan (Aşama 4) |

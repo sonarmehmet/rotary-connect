@@ -40,7 +40,10 @@ export async function reconcilePending(
   for (const p of stale) {
     if (!p.providerRef) continue;
     try {
-      const status = await provider.getStatus(p.providerRef);
+      const result = provider.getResult
+        ? await provider.getResult(p.providerRef)
+        : { status: await provider.getStatus(p.providerRef), amountMinor: p.amountMinor, currency: p.currency };
+      const status = result.status;
       if (status === "pending") {
         if (p.createdAtMs < opts.nowMs - opts.expireAfterMs) {
           const out: WebhookOutcome = await processWebhook(runner, {
@@ -56,10 +59,11 @@ export async function reconcilePending(
         event: {
           providerRef: p.providerRef,
           status,
-          // Sunucu-sunucu sorguda tutar sağlayıcıdan ayrıca doğrulanmalıdır; gerçek sağlayıcı
-          // adaptörü `getStatus` yerine tutar da dönen bir sorgu sağladığında burası güncellenecek.
-          amountMinor: p.amountMinor,
-          currency: p.currency,
+          // Gerçek sağlayıcıda tutar `getResult` ile SAĞLAYICIDAN gelir (uyuşmazsa işaretlenir);
+          // yalnızca simülasyonda kendi kaydımız kullanılır.
+          amountMinor: result.amountMinor,
+          currency: result.currency,
+          ...(result.failureCode === undefined ? {} : { failureCode: result.failureCode }),
         },
         signatureValid: true,
         nowMs: opts.nowMs,
