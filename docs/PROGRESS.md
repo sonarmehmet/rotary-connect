@@ -54,7 +54,9 @@ Yazıldı (`apps/admin_web/lib`): `core/` (biçim/İstanbul saati, Türkçe aram
 - CSV: Dalga 1'de önizleme + panoya kopyala (dosya indirme Dalga 2'de `exportReport` ile bağlanacak). Formül enjeksiyonu önlemi, `;` ayraç, UTF-8 BOM, kişisel veri yok.
 - Üyeler (onay/askıya alma/istifa), Rol ve İzinler (rol atama; son sistem yöneticisi korunur; club_member yalnızca üyelik onayıyla) ve Katılımcı Kayıtları (salt okunur) eklendi; sahte depo `functions/src/members/members.ts` kurallarını taklit eder.
 - Uygulama Ayarları eklendi (yalnızca sistem yöneticisi; rezervasyon süresi, hızlı bağış tutarları, kısmi aidat, düzenli bağış; `paymentMode` panelden DEĞİŞTİRİLMEZ, salt okunur gösterilir).
-- Henüz placeholder: Bildirimler (`notifications` yalnızca Functions yazar; panel için veri sözleşmesi/gönderim callable'ı tanımlanmadı → Hesap A/C ile netleştirilmeli).
+- Bildirimler eklendi: `sendAnnouncement` sözleşmesine göre (hedef kitle all/members/role, başlık ≤80, metin ≤300, sabit rota listesi, idempotency `clientKey`; başarıda yeni anahtar, hatada AYNI anahtar). Hassas içerik (tutar/e-posta/telefon) istemcide de uyarılır (`core/sensitive.dart` = sunucu regex'leri; sunucu kesin denetler).
+- Hata eşleme: `AdminException(code, message, reason)`; `reasonMessagesTr` sunucudaki tüm `reason` değerlerini Türkçe'ye çevirir. Gerçek Firebase deposu, `HttpsError.details.reason`'ı bu alana taşımalıdır.
+- Tüm 16 modül uygulanmış durumda (placeholder kalmadı).
 
 **Dalga 2 için notlar (B → kendim / C):**
 - `report_aggregates` gerçekte GÜNLÜK satır (`day`) ve SİMÜLASYON ödemelerini DIŞLAR (`functions/src/reports/aggregates.ts`); panelin örnek `ReportAggregate` modeli aylık `period` kullanıyor ve örnek verideki simülasyon ödemelerini sayıyor. Gerçek depoda günleri aya toplayıp modele çevir; simülasyon modunda raporların boş çıkması beklenen davranıştır (arayüzde bunu açıkla).
@@ -70,14 +72,13 @@ Yazıldı (`apps/admin_web/lib`): `core/` (biçim/İstanbul saati, Türkçe aram
 
 | Hesap | Dal | Klasör/modül | Başlangıç |
 |---|---|---|---|
-| B | b/admin-notifications | apps/admin_web (notifications, hata reason eşlemesi) | 2026-10-30 |
 | C | c/backend-core | functions, firebase, tests | 2026-10-29 |
 
 ## Değişiklik istekleri (şema/shared için Hesap A'ya)
 
 | Tarih | İsteyen | İstek | Durum |
 |---|---|---|---|
-| 2026-10-30 | B | Bildirimler ekranı için sözleşme yok: panelden duyuru/bildirim göndermek için `sendAnnouncement` (hedef: tüm/üye/rol, başlık, gövde [tutar/kişisel veri yok], `data.route`) callable'ı ve `notifications` üretimi tanımlansın. `DATA_MODEL.md` callable tablosuna eklenmesi gerekir (şema sahibi: A; sunucu: C). | Sunucu tarafı yapıldı (C): `sendAnnouncementHandler`, 11 test; `DATA_MODEL.md` callable tablosuna satır eklendi (A onayı bekler). Firebase `onCall` bağlantısı ve alıcı okuyucu (özellikle `role` hedefi için Auth claim taraması) HENÜZ YOK. |
+| 2026-10-30 | B | (YAPILDI: C `sendAnnouncement` yazdı, B ekranı bağladı) Bildirimler ekranı için sözleşme yok: panelden duyuru/bildirim göndermek için `sendAnnouncement` (hedef: tüm/üye/rol, başlık, gövde [tutar/kişisel veri yok], `data.route`) callable'ı ve `notifications` üretimi tanımlansın. `DATA_MODEL.md` callable tablosuna eklenmesi gerekir (şema sahibi: A; sunucu: C). | Sunucu tarafı yapıldı (C): `sendAnnouncementHandler`, 11 test; `DATA_MODEL.md` callable tablosuna satır eklendi (A onayı bekler). Firebase `onCall` bağlantısı ve alıcı okuyucu (özellikle `role` hedefi için Auth claim taraması) HENÜZ YOK. |
 
 ## Oturum kayıtları
 
@@ -97,3 +98,4 @@ Yazıldı (`apps/admin_web/lib`): `core/` (biçim/İstanbul saati, Türkçe aram
 - 2026-10-30 (hesap B, 2. oturum): Üyeler, Rol ve İzinler, Katılımcı Kayıtları ekranları + sahte depo kuralları + testler. DOĞRULANMAMIŞ (Flutter yok, derlenmedi). Sıradaki (B): kullanıcı makinesinde analyze/test düzeltmeleri; Bildirimler ve Ayarlar; Dalga 2 gerçek depo.
 - 2026-10-30 (hesap B, 3. oturum): Uygulama Ayarları ekranı + sahte depo doğrulaması + testler. DOĞRULANMAMIŞ (Flutter yok). Kalan: Bildirimler (sözleşme bekliyor), kullanıcı makinesinde analyze/test, Dalga 2.
 - 2026-10-30 (hesap B, 4. oturum): Statik tarama: sistem yöneticisinin `viewFinancialReports` izni olmadığı için Genel Bakış testleri finans rolüne çekildi; Genel Bakış izni olmayan roller ('/' açılışında) ilk erişebildikleri modüle yönlendirilir (+test). DOĞRULANMAMIŞ (Flutter yok).
+- 2026-10-30 (hesap B, 5. oturum): Bildirimler ekranı (`sendAnnouncement`), hata `reason` → Türkçe eşlemesi, hassas içerik denetimi + testler. DOĞRULANMAMIŞ (Flutter yok). Sıradaki (B): kullanıcı makinesinde analyze/test düzeltmeleri; ardından Firebase istemci bağlantısı (Dalga 2: `FirebaseAdminRepository`, claim'den rol, giriş ekranı).

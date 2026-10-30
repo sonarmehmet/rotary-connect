@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:rotary_admin_web/core/admin_exception.dart';
 import 'package:rotary_admin_web/core/csv.dart';
 import 'package:rotary_admin_web/core/format.dart';
+import 'package:rotary_admin_web/core/sensitive.dart';
 import 'package:rotary_admin_web/core/text.dart';
 import 'package:rotary_admin_web/features/settings/settings_page.dart';
 import 'package:rotary_admin_web/ui/table_logic.dart';
@@ -145,6 +146,39 @@ void main() {
       expect(parseQuickAmounts('abc'), isNull);
       expect(parseQuickAmounts('250,50'), isNull); // ondalık yok
       expect(parseQuickAmounts('250; x'), isNull);
+    });
+  });
+
+  group('hata reason eşlemesi ve hassas içerik', () {
+    test('bilinen reason Türkçe karşılığa eşlenir', () {
+      expect(
+        errorMessageTr(const AdminException('failed-precondition', 'dolu', 'sold_out')),
+        'Etkinlik kontenjanı dolu.',
+      );
+      expect(
+        errorMessageTr(const AdminException('invalid-argument', null, 'sensitive_content')),
+        contains('kişisel'),
+      );
+    });
+
+    test('bilinmeyen reason sunucu mesajına, o da yoksa koda düşer', () {
+      expect(
+        errorMessageTr(const AdminException('invalid-argument', 'Başlık çok uzun.', 'yeni_reason')),
+        'Başlık çok uzun.',
+      );
+      expect(
+        errorMessageTr(const AdminException('not-found', null, 'yeni_reason')),
+        'Kayıt bulunamadı.',
+      );
+    });
+
+    test('containsSensitive sunucu kurallarıyla aynı', () {
+      expect(containsSensitive('Bilgi: ali@ornek.com'), isTrue);
+      expect(containsSensitive('Ara 0532 123 45 67'), isTrue);
+      expect(containsSensitive('Bağış 250 TL'), isTrue);
+      expect(containsSensitive('TR12 abc'), isTrue);
+      expect(containsSensitive('Yarın saat 19:00 yemek'), isFalse);
+      expect(containsSensitive('Dayanışma yemeği kayıtları açıldı'), isFalse);
     });
   });
 }

@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:rotary_admin_web/core/role_provider.dart';
 import 'package:rotary_admin_web/features/campaigns/campaigns_page.dart';
 import 'package:rotary_admin_web/features/members/members_page.dart';
+import 'package:rotary_admin_web/features/notifications/notifications_page.dart';
 import 'package:rotary_admin_web/features/overview/overview_page.dart';
 import 'package:rotary_admin_web/features/payments/payments_page.dart';
 import 'package:rotary_admin_web/features/registrations/registrations_page.dart';
@@ -260,7 +261,33 @@ void main() {
     testWidgets('ayarlar: finans yöneticisi göremez', (tester) async {
       _size(tester, 1400, 1000);
       await _pump(tester, const SettingsPage(), role: AppRole.financeManager);
+      e
+    testWidgets('bildirimler: içerik yöneticisi formu görür, finans göremez',
+        (tester) async {
+      _size(tester, 1400, 1000);
+      await _pump(tester, const NotificationsPage(), role: AppRole.contentManager);
+      expect(find.text('Hedef kitle'), findsOneWidget);
+      expect(find.text('Gönder'), findsOneWidget);
+    });
+
+    testWidgets('bildirimler: finans yöneticisi göremez', (tester) async {
+      _size(tester, 1400, 1000);
+      await _pump(tester, const NotificationsPage(), role: AppRole.financeManager);
       expect(find.text('Bu sayfayı görüntüleme yetkiniz yok.'), findsOneWidget);
+    });
+
+    testWidgets('bildirimler: hassas içerikli metin istemcide reddedilir',
+        (tester) async {
+      _size(tester, 1400, 1200);
+      await _pump(tester, const NotificationsPage(), role: AppRole.contentManager);
+      await tester.enterText(find.byType(TextFormField).at(0), 'Duyuru başlığı');
+      await tester.enterText(find.byType(TextFormField).at(1), 'Aidat 500 TL');
+      await tester.tap(find.text('Gönder'));
+      await tester.pumpAndSettle();
+      expect(
+        find.text('Tutar, e-posta veya telefon gibi bilgi içeremez'),
+        findsOneWidget,
+      );
     });
   });
 }

@@ -717,3 +717,64 @@ class AppSettings {
         paymentMode: paymentMode,
       );
 }
+
+// ---------------------------------------------------------------------------
+// Duyuru / bildirim gönderimi (`sendAnnouncement`)
+// ---------------------------------------------------------------------------
+
+enum AnnouncementAudience {
+  all('all', 'Tüm kullanıcılar'),
+  members('members', 'Kulüp üyeleri'),
+  role('role', 'Belirli bir rol');
+
+  const AnnouncementAudience(this.wireName, this.label);
+  final String wireName;
+  final String label;
+}
+
+/// Duyurunun açacağı uygulama sayfası (sunucudaki `ANNOUNCE_ROUTES`).
+/// Finansal sayfa (`/dues`) bilerek yoktur.
+enum AnnouncementRoute {
+  news('/news', 'Haberler'),
+  events('/events', 'Etkinlikler'),
+  projects('/projects', 'Projeler'),
+  donate('/donate', 'Bağış'),
+  profile('/profile', 'Profil');
+
+  const AnnouncementRoute(this.path, this.label);
+  final String path;
+  final String label;
+}
+
+/// `sendAnnouncement`. `clientKey` idempotency anahtarıdır (8-64, [A-Za-z0-9_-]).
+class AnnouncementRequest {
+  const AnnouncementRequest({
+    required this.audience,
+    required this.title,
+    required this.body,
+    required this.route,
+    required this.clientKey,
+    this.role,
+  });
+
+  final AnnouncementAudience audience;
+
+  /// Yalnızca `audience == role` iken.
+  final AppRole? role;
+  final String title;
+  final String body;
+  final AnnouncementRoute route;
+  final String clientKey;
+}
+
+class AnnouncementResult {
+  const AnnouncementResult({
+    required this.recipients,
+    required this.sent,
+    required this.skippedByPreferences,
+  });
+
+  final int recipients;
+  final int sent;
+  final int skippedByPreferences;
+}

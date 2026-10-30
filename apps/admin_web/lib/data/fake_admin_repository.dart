@@ -1,6 +1,7 @@
 import 'package:rotary_shared/shared.dart';
 
 import '../core/admin_exception.dart';
+import '../core/sensitive.dart';
 import 'admin_repository.dart';
 import 'models.dart';
 import 'report_csv.dart';
@@ -43,6 +44,7 @@ class FakeAdminRepository implements AdminRepository {
   late final List<AppUserRow> _users;
   late final List<EventRegistration> _registrations;
   final Set<String> _manualKeys = {};
+  final Map<String, AnnouncementResult> _announcements = {};
   AppSettings _settings = const AppSettings(
     clubName: 'Örnek Rotary Kulübü',
     contact: 'iletisim@ornek.invalid',
@@ -519,6 +521,86 @@ class FakeAdminRepository implements AdminRepository {
   @override
   Future<List<EventRegistration>> listRegistrations() async =>
       List.of(_registrations);
+
+  // --- Bildirim ---------------------------------------------------------------
+
+  static final RegExp _clientKey = RegExp(r'^[A-Za-z0-9_-]{8,64}$');
+
+  @override
+  Future<AnnouncementResult> sendAnnouncement(AnnouncementRequest r) async {
+    final title = r.title.trim();
+    final body = r.body.trim();
+    if (title.isEmpty || title.length > 80) {
+      throw const AdminException(
+        'invalid-argument',
+        'Başlık 1-80 karakter olmalı.',
+        'invalid_title',
+      );
+    }
+    if (body.isEmpty || body.length > 300) {
+      throw const AdminException(
+        'invalid-argument',
+        'Metin 1-300 karakter olmalı.',
+        'invalid_body',
+      );
+    }
+    if (!_clientKey.hasMatch(r.clientKey)) {
+      throw const AdminException(
+        'invalid-argument',
+        'İşlem anahtarı geçersiz.',
+        'invalid_clientKey',
+      );
+    }
+    if (containsSensitive(title) || containsSensitive(body)) {
+      throw const AdminException(
+        'invalid-argument',
+        null,
+        'sensitive_content',
+      );
+    }
+    if (r.audience == AnnouncementAudience.role &&
+        (r.role == null || r.role == AppRole.visitor)) {
+      throw const AdminException(
+        'invalid-argument',
+        'Hedef rol geçersiz.',
+        'invalid_audience',
+      );
+    }
+    // Aynı anahtar: bildirimler zaten var, çift üretilmez (yalnızca ilk sonuç döner).
+    final previous = _announcements[r.clientKey];
+    if (previous != null) return previous;
+
+    final count = _users.where((u) {
+      switch (r.audience) {
+        case AnnouncementAudience.all:
+          return true;
+        case AnnouncementAudience.members:
+          return u.role == AppRole.clubMember;
+        case AnnouncementAudience.role:
+          return u.role == r.role;
+      }
+    }).length;
+    final result = AnnouncementResult(
+      recipients: count,
+      sent: count,
+      skippedByPreferences: 0,
+    );
+    _announcements[r.clientKey] = result;
+    _log(
+      'announcement.send',
+      'announcement',
+      r.clientKey,
+      after: {
+        'audience': r.audience == AnnouncementAudience.role
+            ? 'role:${r.role!.wireName}'
+            : r.audience.wireName,
+        'route': r.route.path,
+        'recipients': count,
+        'sent': count,
+      },
+    );
+    return result;
+  }
 
   // --- Ayarlar ---------------------------------------------------------------
 

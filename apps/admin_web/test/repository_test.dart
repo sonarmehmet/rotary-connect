@@ -373,5 +373,66 @@ void main() {
       expect(now.paymentMode, 'simulation');
       expect((await repo.listAuditLogs()).first.action, 'settings.update');
     });
+
+    test('duyuru: hedef sayıları, idempotency, hassas içerik reddi, denetim', () async {
+      AnnouncementRequest req(
+        AnnouncementAudience a, {
+        AppRole? role,
+        String key = 'anahtar_001',
+        String title = 'Yemek kayıtları',
+        String body = 'Kayıtlar 10 Kasım\'a kadar.',
+      }) =>
+          AnnouncementRequest(
+            audience: a,
+            role: role,
+            title: title,
+            body: body,
+            route: AnnouncementRoute.events,
+            clientKey: key,
+          );
+
+      final users = await repo.listUsers();
+      final all = await repo.sendAnnouncement(req(AnnouncementAudience.all));
+      expect(all.recipients, users.length);
+      expect(all.sent, users.length);
+
+      final members = await repo.sendAnnouncement(
+        req(AnnouncementAudience.members, key: 'anahtar_002'),
+      );
+      expect(
+        members.recipients,
+        users.where((u) => u.role == AppRole.clubMember).length,
+      );
+
+      final auditBefore = (await repo.listAuditLogs()).length;
+      final again = await repo.sendAnnouncement(
+        req(AnnouncementAudience.members, key: 'anahtar_002'),
+      );
+      expect(again.sent, members.sent);
+      expect((await repo.listAuditLogs()).length, auditBefore); // çift kayıt yok
+
+      await expectLater(
+        repo.sendAnnouncement(
+          req(AnnouncementAudience.all, key: 'anahtar_003', body: 'Bağış 500 TL'),
+        ),
+        throwsA(
+          isA<AdminException>().having((e) => e.reason, 'reason', 'sensitive_content'),
+        ),
+      );
+      await expectLater(
+        repo.sendAnnouncement(req(AnnouncementAudience.all, key: 'kisa')),
+        throwsCode('invalid-argument'),
+      );
+      await expectLater(
+        repo.sendAnnouncement(
+          req(AnnouncementAudience.role, key: 'anahtar_004'),
+        ),
+        throwsCode('invalid-argument'),
+      );
+      expect(
+        (await repo.listAuditLogs()).where((a) => a.action == 'announcement.send').length,
+        2,
+      );
+    });
   });
 }

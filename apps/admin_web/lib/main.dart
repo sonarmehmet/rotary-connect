@@ -12,6 +12,7 @@ import 'features/dues/dues_page.dart';
 import 'features/events/events_page.dart';
 import 'features/members/members_page.dart';
 import 'features/news/news_page.dart';
+import 'features/notifications/notifications_page.dart';
 import 'features/overview/overview_page.dart';
 import 'features/payments/payments_page.dart';
 import 'features/projects/projects_page.dart';
@@ -24,12 +25,13 @@ import 'ui/state_views.dart';
 
 export 'core/role_provider.dart' show adminRoleProvider;
 
-/// Uygulanan modüller. Bildirimler Dalga 2'de eklenir (veri sözleşmesi yok).
+/// Uygulanan modüller. Tüm modüller uygulanmıştır.
 const Map<String, Widget> _pages = {
   '/': OverviewPage(),
   '/members': MembersPage(),
   '/roles': RolesPage(),
   '/registrations': RegistrationsPage(),
+  '/notifications': NotificationsPage(),
   '/settings': SettingsPage(),
   '/dues': DuesPage(),
   '/campaigns': CampaignsPage(),

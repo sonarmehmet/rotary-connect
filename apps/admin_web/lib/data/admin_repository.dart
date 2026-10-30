@@ -67,6 +67,11 @@ abstract class AdminRepository {
 
   Future<List<EventRegistration>> listRegistrations();
 
+  // --- Bildirim ---
+  /// `sendAnnouncement` (içerik/sistem yöneticisi). İdempotent: aynı
+  /// `clientKey` ikinci kez çağrılırsa çift bildirim üretilmez.
+  Future<AnnouncementResult> sendAnnouncement(AnnouncementRequest request);
+
   // --- Ayarlar (yazma: yalnızca sistem yöneticisi) ---
   Future<AppSettings> getSettings();
 
