@@ -16,3 +16,8 @@ export { EventRegistrationService } from "./events/service";
 export { decideReserve, remainingSpots } from "./events/capacity";
 export { deriveDueStatus, resolveDuePayment, applyPayment } from "./dues/dues";
 export { buildAuditEntry, redact } from "./audit/audit";
+export { startPayment, idempotencyKeyFor } from "./payments/startPayment";
+export { processWebhook } from "./payments/webhook";
+export { reconcilePending } from "./payments/reconcile";
+export { aggregateByDay, campaignVerifiedTotal, istanbulDay } from "./reports/aggregates";
+export { constantTimeEqual } from "./lib/safeEqual";
