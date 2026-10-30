@@ -45,12 +45,19 @@ void main() {
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
 
-    await tester.pumpWidget(const ProviderScope(child: AdminApp()));
+    // İçerik yöneticisinin Genel Bakış izni yoktur: '/' yerine ilk erişebildiği modül açılır.
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          adminRoleProvider.overrideWith((ref) => AppRole.contentManager),
+        ],
+        child: const AdminApp(),
+      ),
+    );
     await tester.pumpAndSettle();
 
-    // Sistem yöneticisi: '/' yerine 'Kullanıcı ve Üyeler' açılır.
     expect(find.text('Bu sayfayı görüntüleme yetkiniz yok.'), findsNothing);
-    expect(find.text('Kayıt olmak üye olmak değildir; üyelik yönetici '
-        'onayıyla başlar.'), findsOneWidget);
+    expect(find.text('Genel Bakış'), findsNothing);
+    expect(find.text('Bağış Kampanyaları'), findsWidgets);
   });
 }
