@@ -35,6 +35,8 @@ export interface PaymentProvider {
    * doğrulaması sağlayıcıdan gelir, kendi kaydımızdan değil). Yoksa yalnızca simülasyon içindir.
    */
   getResult?(providerRef: string): Promise<ProviderResult>;
+  /** Para iadesi. `idempotencyKey` aynıysa sağlayıcıda tekrar iade OLUŞMAMALI. Hata fırlatır. */
+  refund?(providerRef: string, amountMinor: number, idempotencyKey: string): Promise<void>;
 }
 
 /** Sağlayıcı yapılandırılana kadar kullanılan simülasyon. Para hareketi YAPMAZ. */

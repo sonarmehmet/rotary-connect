@@ -125,3 +125,31 @@ describe("iyzico webhook işleyicisi", () => {
     expect(payments.all()[0]?.status).toBe("pending");
   });
 });
+
+describe("iyzico iadesi", () => {
+  it("ödeme ayrıntısından paymentId alır, tutar bazlı iade eder, anahtarı conversationId yapar", async () => {
+    const sent: { path: string; body: Record<string, unknown> }[] = [];
+    const http: IyzicoHttp = {
+      async post(path, body) {
+        sent.push({ path, body });
+        return path.includes("detail") ? { status: "success", paymentId: "9001" } : { status: "success" };
+      },
+    };
+    const p = new IyzicoProvider({ http, callbackUrl: "x", buyerFor });
+    await p.refund("tok-1", 2_500, "refund_pay1_0_2500");
+    expect(sent[1]?.path).toBe("/v2/payment/refund");
+    expect(sent[1]?.body["paymentId"]).toBe("9001");
+    expect(sent[1]?.body["price"]).toBe("25.00");
+    expect(sent[1]?.body["conversationId"]).toBe("refund_pay1_0_2500");
+  });
+
+  it("iyzico reddederse veya ayrıntı alınamazsa hata fırlatır", async () => {
+    const noDetail = new IyzicoProvider({ http: { post: async () => ({ status: "failure" }) }, callbackUrl: "x", buyerFor });
+    await expect(noDetail.refund("t", 100, "k")).rejects.toThrow();
+    const denied = new IyzicoProvider({
+      http: { post: async (path) => (path.includes("detail") ? { status: "success", paymentId: "1" } : { status: "failure", errorCode: "5" }) },
+      callbackUrl: "x", buyerFor,
+    });
+    await expect(denied.refund("t", 100, "k")).rejects.toThrow();
+  });
+});

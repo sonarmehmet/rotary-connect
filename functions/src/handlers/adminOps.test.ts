@@ -322,6 +322,39 @@ describe("issueRefund", () => {
     expect(s.refunds).toHaveLength(0);
   });
 
+  it("sağlayıcı iadesi önce yapılır, sonra kayıt yazılır; anahtar sabittir", async () => {
+    const s = refundSetup([payment({ simulated: false, manual: false, provider: "iyzico", providerRef: "tok-1" })]);
+    const calls: { amount: number; key: string }[] = [];
+    const deps = { ...s.deps, providerRefund: async (_p: PaymentDoc, amount: number, key: string) => void calls.push({ amount, key }) };
+    expect((await issueRefundHandler(deps, FIN, body)).refundedMinor).toBe(20000);
+    expect(calls).toEqual([{ amount: 20000, key: "refund_pay1_0_20000" }]);
+    expect(s.store.get("pay1")?.status).toBe("partially_refunded");
+  });
+
+  it("sağlayıcı iadeyi reddederse hiçbir kayıt değişmez", async () => {
+    const s = refundSetup([payment({ simulated: false, manual: false, provider: "iyzico", providerRef: "tok-1" })]);
+    const deps = { ...s.deps, providerRefund: async () => { throw new Error("red"); } };
+    expect(await failure(issueRefundHandler(deps, FIN, body))).toBe("unavailable:provider_refund_failed");
+    expect(s.store.get("pay1")?.refundedMinor).toBe(0);
+    expect(s.refunds).toHaveLength(0);
+  });
+
+  it("kalanı aşan iade sağlayıcıya HİÇ gitmez", async () => {
+    const s = refundSetup([payment({ simulated: false, manual: false, provider: "iyzico", providerRef: "tok-1" })]);
+    let called = false;
+    const deps = { ...s.deps, providerRefund: async () => void (called = true) };
+    await failure(issueRefundHandler(deps, FIN, { ...body, amountMinor: 999_999 }));
+    expect(called).toBe(false);
+  });
+
+  it("simülasyon ödemesinde sağlayıcı çağrılmaz", async () => {
+    const s = refundSetup([payment({})]);
+    let called = false;
+    const deps = { ...s.deps, providerRefund: async () => void (called = true) };
+    await issueRefundHandler(deps, FIN, body);
+    expect(called).toBe(false);
+  });
+
   it("manuel ödeme iade edilebilir", async () => {
     const s = refundSetup([payment({ simulated: false, manual: true, provider: "manual" })]);
     expect((await issueRefundHandler(s.deps, FIN, body)).refundedMinor).toBe(20000);

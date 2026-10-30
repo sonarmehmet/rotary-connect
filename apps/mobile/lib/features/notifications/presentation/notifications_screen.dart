@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../../core/router/app_router.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../data/models.dart';
 import '../../../data/providers.dart';
@@ -18,7 +19,9 @@ class NotificationsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final df = DateFormat('d MMMM, HH:mm', 'tr_TR');
     return Scaffold(
-      appBar: AppBar(title: const Text('Bildirimlerim')),
+      appBar: AppBar(title: const Text('Bildirimlerim'), actions: [
+        IconButton(tooltip: 'Bildirim tercihleri', icon: const Icon(Icons.tune), onPressed: () => context.go(Routes.notificationSettings)),
+      ]),
       body: Column(children: [
         const TestDataBanner(),
         Expanded(

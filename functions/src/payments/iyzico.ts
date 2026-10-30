@@ -133,6 +133,24 @@ export class IyzicoProvider implements PaymentProvider {
     };
   }
 
+  /**
+   * Kısmi/tam iade: önce ödeme ayrıntısından iyzico `paymentId` alınır, sonra tutar bazlı iade (v2).
+   * DOĞRULANMAMIŞ uç nokta/alan adları; sandbox'ta denenmeli. `conversationId` = idempotencyKey.
+   */
+  async refund(providerRef: string, amountMinor: number, idempotencyKey: string): Promise<void> {
+    const detail = await this.o.http.post("/payment/iyzipos/checkoutform/auth/ecom/detail", { locale: "tr", token: providerRef });
+    const paymentId = str(detail["paymentId"]);
+    if (str(detail["status"]) !== "success" || paymentId === "") throw new Error("iyzico ödeme ayrıntısı alınamadı");
+    const res = await this.o.http.post("/v2/payment/refund", {
+      locale: "tr",
+      conversationId: idempotencyKey,
+      paymentId,
+      price: minorToPrice(amountMinor),
+      ip: "85.34.78.112",
+    });
+    if (str(res["status"]) !== "success") throw new Error(`iyzico iadeyi reddetti: ${str(res["errorCode"])}`);
+  }
+
   async getStatus(providerRef: string): Promise<PaymentStatus> {
     return (await this.getResult(providerRef)).status;
   }

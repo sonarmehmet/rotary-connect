@@ -84,6 +84,8 @@ Yazıldı (`apps/admin_web/lib`): `core/` (biçim/İstanbul saati, Türkçe aram
 
 ## Oturum kayıtları
 
+- 2026-10-30 (hesap C, 5): `issueRefundHandler` (B'nin dosyası, C minimal düzenledi: `providerRefund` isteğe bağlı bağımlılık; sıra: planla → sağlayıcı iadesi → kaydı yaz; sağlayıcı reddederse kayıt değişmez; anahtar `refund_<ödeme>_<önceki>_<tutar>` ile sağlayıcıda çift iade olmaz). `IyzicoProvider.refund` (uç nokta `/v2/payment/refund` DOĞRULANMAMIŞ). `firebase/payConfig.ts` ortak yapılandırma. Mobil bildirim tercih ekranı. Backend 223 test geçti.
+
 - 2026-10-30 (hesap C, 4): Karar: ödeme sağlayıcı = iyzico (DECISIONS #7). `payments/iyzico.ts` + `handlers/iyzicoWebhook.ts`; `PaymentProvider.getResult` (tutar sağlayıcıdan; mutabakat artık kendi kaydıyla onaylamaz). `privacy/executeDeletion.ts`. `src/firebase/` (sdk, stores, iyzicoHttp, main) ve `package.json` `main: lib/firebase/main.js`, bağımlılıklar firebase-admin/firebase-functions. `tests/rules/`. Backend 210 test geçti (yerel çatı). DOĞRULANMAMIŞ: `src/firebase/*` hiç derlenmedi; iyzico alan adları/IYZWSv2 imzası sandbox'ta denenmedi; kural testleri çalışmadı.
   - Kurulum (kullanıcı): `cd functions && npm install && npm run build` (derleme hatalarını C'ye yapıştır), `firebase functions:secrets:set IYZICO_API_KEY` ve `IYZICO_SECRET_KEY`, `PAYMENT_MODE=simulation` (varsayılan). Canlıya geçmeden: iyzico sandbox uçtan uca, imza özelliği hesapta açık olmalı, webhook URL = `iyzicoWebhook` işlevi.
   - Simülasyonda ödeme sonucu için `simulatePaymentResult` callable'ı (yalnızca system_admin, canlıda kapalı).

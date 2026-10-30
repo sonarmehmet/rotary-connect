@@ -5,7 +5,6 @@ import { getFirestore } from "firebase-admin/firestore";
 import { setGlobalOptions } from "firebase-functions/v2";
 import { CallableRequest, HttpsError, onCall, onRequest } from "firebase-functions/v2/https";
 import { onSchedule } from "firebase-functions/v2/scheduler";
-import { defineSecret, defineString } from "firebase-functions/params";
 import { FirestoreEventTxRunner, FirestorePaymentTxRunner } from "../adapters/firestoreStores";
 import { FirestoreEffectsTxRunner } from "../adapters/firestoreEffects";
 import { EventRegistrationService } from "../events/service";
@@ -20,12 +19,10 @@ import { getDonationReceiptHandler, requestAccountDeletionHandler } from "../han
 import { runDueMaintenance, runExpireReservations, runReconcile } from "../jobs/scheduled";
 import { DEFAULT_PREFS, NotificationPrefs } from "../notifications/notifications";
 import { EffectsDeps, applyEffects } from "../payments/effects";
-import { IyzicoProvider } from "../payments/iyzico";
 import { handleProviderEvent, sweepEffects } from "../payments/pipeline";
-import { PaymentProvider, SimulatedProvider } from "../payments/provider";
 import { executeAccountDeletion } from "../privacy/executeDeletion";
 import { requireAuth } from "../handlers/handlers";
-import { iyzicoHttp } from "./iyzicoHttp";
+import { IYZICO_SECRET_KEY, SECRETS, activeProvider, isLive, iyzico } from "./payConfig";
 import { fsDb, timestampClock } from "./sdk";
 import { stores } from "./stores";
 
@@ -38,12 +35,6 @@ import { stores } from "./stores";
 setGlobalOptions({ region: "europe-west1", maxInstances: 10 });
 initializeApp();
 
-const PAYMENT_MODE = defineString("PAYMENT_MODE", { default: "simulation" });
-const IYZICO_BASE_URL = defineString("IYZICO_BASE_URL", { default: "https://sandbox-api.iyzipay.com" });
-const PUBLIC_BASE_URL = defineString("PUBLIC_BASE_URL", { default: "https://example.invalid" });
-const IYZICO_API_KEY = defineSecret("IYZICO_API_KEY");
-const IYZICO_SECRET_KEY = defineSecret("IYZICO_SECRET_KEY");
-const SECRETS = [IYZICO_API_KEY, IYZICO_SECRET_KEY];
 const RESERVATION_MINUTES = 15;
 
 const db = getFirestore();
@@ -62,17 +53,7 @@ const effects: EffectsDeps = {
   nowMs,
 };
 
-const isLive = (): boolean => PAYMENT_MODE.value() === "live";
-const simulated = new SimulatedProvider();
-
-function iyzico(): IyzicoProvider {
-  return new IyzicoProvider({
-    http: iyzicoHttp({ baseUrl: IYZICO_BASE_URL.value(), apiKey: IYZICO_API_KEY.value(), secretKey: IYZICO_SECRET_KEY.value() }),
-    callbackUrl: `${PUBLIC_BASE_URL.value()}/payment-return`,
-    buyerFor: async (paymentId) => ({ id: paymentId, name: "Rotary", surname: "Bağışçı", email: "noreply@rotary.invalid", ip: "85.34.78.112" }),
-  });
-}
-const provider = (): PaymentProvider => (isLive() ? iyzico() : simulated);
+const provider = activeProvider;
 const mode = (): "simulation" | "live" => (isLive() ? "live" : "simulation");
 
 function toAuth(req: CallableRequest): CallableAuth | null {

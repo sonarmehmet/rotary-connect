@@ -7,6 +7,7 @@ import {
   exportReportHandler, issueRefundHandler,
 } from "./handlers/adminOps";
 import { CallableAuth } from "./handlers/handlers";
+import { SECRETS, isLive, iyzico } from "./firebase/payConfig";
 import { toCallableError } from "./handlers/callableError";
 
 /**
@@ -32,8 +33,8 @@ function build() {
 }
 const deps = () => (cache ??= build());
 
-function wrap<T>(run: (auth: CallableAuth | null, data: unknown) => Promise<T>) {
-  return onCall({ region: REGION }, async (request) => {
+function wrap<T>(run: (auth: CallableAuth | null, data: unknown) => Promise<T>, secrets: typeof SECRETS = []) {
+  return onCall({ region: REGION, secrets }, async (request) => {
     try {
       const auth: CallableAuth | null = request.auth
         ? { uid: request.auth.uid, token: request.auth.token as unknown as Record<string, unknown> }
@@ -50,5 +51,19 @@ export const assignRole = wrap((a, d) => assignRoleHandler(deps().admin, a, d));
 export const approveMembership = wrap((a, d) => approveMembershipHandler(deps().admin, a, d));
 export const endMembership = wrap((a, d) => endMembershipHandler(deps().admin, a, d));
 export const assignDues = wrap((a, d) => assignDuesHandler(deps().dues, a, d));
-export const issueRefund = wrap((a, d) => issueRefundHandler(deps().refunds, a, d));
+// Gerçek sağlayıcı ödemelerinde para iadesi iyzico'dan yapılır (canlı/sandbox modunda); simülasyonda yok.
+export const issueRefund = wrap(
+  (a, d) =>
+    issueRefundHandler(
+      {
+        ...deps().refunds,
+        ...(isLive()
+          ? { providerRefund: async (p, amount, key) => { await iyzico().refund(p.providerRef ?? "", amount, key); } }
+          : {}),
+      },
+      a,
+      d,
+    ),
+  SECRETS,
+);
 export const exportReport = wrap((a, d) => exportReportHandler(deps().exports, a, d));

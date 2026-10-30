@@ -11,7 +11,7 @@ Her hesap işini bitirince kendi bölümünü işaretler.
 - [x] Etkinlikler (kart, detay, kayıt formu, onay)
 - [x] Aidat ekranı (borçlar, geçmiş)
 - [x] Giriş / kayıt formları (şifre sıfırlama yalnızca mesaj, Aşama 4)
-- [x] Profil (KVKK silme talebi yalnızca iletişim kutusu; bildirim tercih ekranı YOK)
+- [x] Profil (KVKK silme talebi yalnızca iletişim kutusu; bildirim tercih ekranı VAR)
 - [x] Yükleniyor / boş / hata / başarı bileşenleri
 - [x] Sahte repository'ler (örnek veri)
 - [ ] Firebase bağlantısı (Aşama 4, ağ gerekir)
@@ -44,6 +44,6 @@ Callable sözleşmesi (DATA_MODEL.md) — "mantık" = test edilmiş iş kuralı,
 
 ## Ortak
 - [x] packages/shared (Money, roller, ödeme durumu, renkler)
-- [x] Ödeme sağlayıcı seçimi: iyzico (bkz. DECISIONS #7); iade (para iadesi) çağrısı iyzico tarafında HENÜZ YOK
+- [x] Ödeme sağlayıcı seçimi: iyzico (bkz. DECISIONS #7); iyzico para iadesi (`IyzicoProvider.refund`, `issueRefund` içinde önce sağlayıcı sonra kayıt) YAZILDI, sandbox'ta DENENMEDİ
 - [ ] KVKK/gizlilik/iade metin taslakları (hukuk onayı gerekir)
 - [ ] Android/iOS derleme ve yayın hazırlığı

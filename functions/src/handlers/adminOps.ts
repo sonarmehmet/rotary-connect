@@ -4,7 +4,7 @@ import { DomainError } from "../lib/errors";
 import { buildCsv, formatMoney } from "../lib/csv";
 import { Role, requireRole } from "../lib/roles";
 import { planRefund } from "../payments/refunds";
-import { PaymentKindWire, PaymentTx } from "../payments/repo";
+import { PaymentKindWire, PaymentTx, PaymentDoc } from "../payments/repo";
 import { AuditSink, CallableAuth, requireAuth } from "./handlers";
 import { asBool, asEnum, asInt, asObject, asOptionalString, asString } from "./validate";
 
@@ -286,6 +286,12 @@ export interface RefundTxRunner {
 
 export interface RefundHandlerDeps {
   readonly refunds: RefundTxRunner;
+  /**
+   * Gerçek sağlayıcı ödemesinde para iadesini sağlayıcıda yapar (ağ çağrısı, transaction DIŞINDA).
+   * `idempotencyKey` aynı iade için aynıdır: sağlayıcıya tekrar çağrı çift iade üretmemelidir.
+   * Verilmezse yalnızca simülasyon/manuel ödemeler iade edilebilir.
+   */
+  readonly providerRefund?: (payment: PaymentDoc, amountMinor: number, idempotencyKey: string) => Promise<void>;
   readonly audit: AuditSink;
   readonly nowMs: () => number;
 }
@@ -303,15 +309,32 @@ export async function issueRefundHandler(
   const reason = asString(o["reason"], "reason", { min: 5, max: 300 });
   const nowMs = deps.nowMs();
 
+  // 1) Planla (yalnızca okuma): geçersiz/aşan iade sağlayıcıya HİÇ gitmez.
+  const first = await deps.refunds.run(async (tx) => {
+    const p = await tx.getPayment(paymentId);
+    if (!p) throw new DomainError("not-found", "Ödeme bulunamadı", "payment_not_found");
+    const plan = planRefund(p, amountMinor);
+    if (!p.simulated && !p.manual && !deps.providerRefund) {
+      throw new DomainError("failed-precondition", "Sağlayıcı iadesi henüz desteklenmiyor", "provider_refund_unavailable");
+    }
+    return { p, plan };
+  });
+
+  // 2) Gerçek sağlayıcıda parayı iade et. Anahtar (ödeme + önceki iade + tutar) aynı iade için sabittir:
+  //    adım 3 başarısız olup yönetici tekrar denerse sağlayıcıda çift iade oluşmaz.
+  if (!first.p.simulated && !first.p.manual && deps.providerRefund) {
+    try {
+      await deps.providerRefund(first.p, first.plan.refundMinor, `refund_${paymentId}_${first.p.refundedMinor}_${first.plan.refundMinor}`);
+    } catch {
+      throw new DomainError("unavailable", "Sağlayıcı iadeyi işleyemedi; kayıt değiştirilmedi", "provider_refund_failed");
+    }
+  }
+
+  // 3) Kaydı yaz (taze okumayla yeniden planla: arada başka iade olduysa tutarlılık korunur).
   const out = await deps.refunds.run(async (tx) => {
     const p = await tx.getPayment(paymentId);
     if (!p) throw new DomainError("not-found", "Ödeme bulunamadı", "payment_not_found");
     const plan = planRefund(p, amountMinor);
-    // Gerçek sağlayıcı iadesi Aşama 8'de (sağlayıcı seçimi açık): o zamana dek yalnızca
-    // simülasyon ve manuel ödemeler iade edilebilir; aksi halde para iadesi olmadan kayıt tutulurdu.
-    if (!p.simulated && !p.manual) {
-      throw new DomainError("failed-precondition", "Sağlayıcı iadesi henüz desteklenmiyor", "provider_refund_unavailable");
-    }
     await tx.updatePayment(paymentId, {
       refundedMinor: plan.newRefundedMinor,
       status: plan.nextStatus,

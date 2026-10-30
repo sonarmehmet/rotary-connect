@@ -54,4 +54,14 @@ void main() {
     await r.markNotificationRead('nt1');
     expect((await r.notifications()).firstWhere((n) => n.id == 'nt1').read, isTrue);
   });
+
+  test('bildirim tercihi kaydedilir ve diğer tercihler korunur', () async {
+    final r = FakeAppRepository();
+    final p = await r.notificationPrefs();
+    expect(p.announcements && p.dues && p.events && p.donations, isTrue);
+    await r.saveNotificationPrefs(p.copyWith(dues: false));
+    final q = await r.notificationPrefs();
+    expect(q.dues, isFalse);
+    expect(q.events, isTrue);
+  });
 }

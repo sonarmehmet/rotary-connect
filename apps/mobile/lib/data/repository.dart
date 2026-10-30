@@ -25,6 +25,8 @@ abstract class AppRepository {
 
   Future<List<AppNotification>> notifications();
   Future<void> markNotificationRead(String id);
+  Future<NotificationPrefs> notificationPrefs();
+  Future<void> saveNotificationPrefs(NotificationPrefs prefs);
 }
 
 /// Örnek veriyle çalışan bellek içi uygulama (Aşama 3). Veriler TEST VERİSİDİR.
@@ -34,6 +36,7 @@ class FakeAppRepository implements AppRepository {
   final Map<String, RegistrationStatus> _reg = {};
   final Map<String, DonationResult> _byKey = {};
   final Set<String> _readNotes = {};
+  NotificationPrefs _prefs = const NotificationPrefs();
 
   @override
   Future<List<Campaign>> campaigns() async => [
@@ -156,6 +159,12 @@ class FakeAppRepository implements AppRepository {
 
   @override
   Future<void> markNotificationRead(String id) async => _readNotes.add(id);
+
+  @override
+  Future<NotificationPrefs> notificationPrefs() async => _prefs;
+
+  @override
+  Future<void> saveNotificationPrefs(NotificationPrefs prefs) async => _prefs = prefs;
 }
 
 final repositoryProvider = Provider<AppRepository>((ref) => FakeAppRepository());
