@@ -4,7 +4,14 @@ import 'package:go_router/go_router.dart';
 import 'package:rotary_shared/shared.dart';
 
 import '../../features/home/presentation/home_screen.dart';
-import '../../shared/widgets/placeholder_screen.dart';
+import '../../features/auth/presentation/login_screen.dart';
+import '../../features/auth/presentation/register_screen.dart';
+import '../../features/donations/presentation/donate_screen.dart';
+import '../../features/dues/presentation/dues_screen.dart';
+import '../../features/events/presentation/events_screen.dart';
+import '../../features/news/presentation/news_screen.dart';
+import '../../features/profile/presentation/profile_screen.dart';
+import '../../features/projects/presentation/projects_screen.dart';
 
 /// Geçici (Aşama 2) rol durumu. Aşama 4'te Firebase Auth custom claim'inden
 /// okunacak. Burada yalnızca yönlendirme koruma mantığı test edilebilsin diye var.
@@ -45,37 +52,37 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(path: Routes.home, builder: (_, __) => const HomeScreen()),
           GoRoute(
             path: Routes.donate,
-            builder: (_, __) => const PlaceholderScreen(title: 'Bağış Yap'),
+            builder: (_, __) => const DonateScreen(),
           ),
           GoRoute(
             path: Routes.events,
-            builder: (_, __) => const PlaceholderScreen(title: 'Etkinlikler'),
+            builder: (_, __) => const EventsScreen(),
           ),
           GoRoute(
             path: Routes.projects,
-            builder: (_, __) => const PlaceholderScreen(title: 'Projeler'),
+            builder: (_, __) => const ProjectsScreen(),
           ),
           GoRoute(
             path: Routes.profile,
-            builder: (_, __) => const PlaceholderScreen(title: 'Profilim'),
+            builder: (_, __) => const ProfileScreen(),
           ),
         ],
       ),
       GoRoute(
         path: Routes.news,
-        builder: (_, __) => const PlaceholderScreen(title: 'Haberler ve Duyurular'),
+        builder: (_, __) => const NewsScreen(),
       ),
       GoRoute(
         path: Routes.dues,
-        builder: (_, __) => const PlaceholderScreen(title: 'Aidat ve Ödemelerim'),
+        builder: (_, __) => const DuesScreen(),
       ),
       GoRoute(
         path: Routes.login,
-        builder: (_, __) => const PlaceholderScreen(title: 'Giriş Yap', stage: 4),
+        builder: (_, __) => const LoginScreen(),
       ),
       GoRoute(
         path: Routes.register,
-        builder: (_, __) => const PlaceholderScreen(title: 'Kayıt Ol', stage: 4),
+        builder: (_, __) => const RegisterScreen(),
       ),
     ],
   );

@@ -75,7 +75,7 @@ Yazıldı (`apps/admin_web/lib`): `core/` (biçim/İstanbul saati, Türkçe aram
 | Hesap | Dal | Klasör/modül | Başlangıç |
 |---|---|---|---|
 | B | b/backend-admin-ops | functions/src/handlers/adminOps*.ts, functions/src/lib/csv*.ts (YENİ dosyalar; C'nin dosyalarına yalnız `audit.ts` union'ına 1 satır + `index.ts` sonuna export) — kullanıcı izniyle C'ye yardım | 2026-10-30 |
-| C | c/backend-core | functions, firebase, tests | 2026-10-29 |
+| C | c/backend-core | functions, firebase, tests, apps/mobile (kullanıcı "eksik neresi varsa yardım et" dedi; A hiç push etmedi) | 2026-10-29 |
 
 ## Değişiklik istekleri (şema/shared için Hesap A'ya)
 
@@ -84,6 +84,8 @@ Yazıldı (`apps/admin_web/lib`): `core/` (biçim/İstanbul saati, Türkçe aram
 | 2026-10-30 | B | (YAPILDI: C `sendAnnouncement` yazdı, B ekranı bağladı) Bildirimler ekranı için sözleşme yok: panelden duyuru/bildirim göndermek için `sendAnnouncement` (hedef: tüm/üye/rol, başlık, gövde [tutar/kişisel veri yok], `data.route`) callable'ı ve `notifications` üretimi tanımlansın. `DATA_MODEL.md` callable tablosuna eklenmesi gerekir (şema sahibi: A; sunucu: C). | Sunucu tarafı yapıldı (C): `sendAnnouncementHandler`, 11 test; `DATA_MODEL.md` callable tablosuna satır eklendi (A onayı bekler). Firebase `onCall` bağlantısı ve alıcı okuyucu (özellikle `role` hedefi için Auth claim taraması) HENÜZ YOK. |
 
 ## Oturum kayıtları
+
+- 2026-10-30 (hesap C): Mobil Aşama 3 yazıldı: veri katmanı (models, AppRepository + FakeAppRepository, validators, providers), ana sayfa kartları, bağış, etkinlik (liste/detay/kayıt/bekleme), proje, haber, aidat, giriş/kayıt, profil. Flutter hiç derlenmedi → DOĞRULANMAMIŞ; ilk iş `flutter pub get && flutter analyze && flutter test`. Bildirim ekranı, ücretli etkinlik ödeme adımı ve gerçek Firebase bağlantısı yok.
 
 - 2026-10-29 (hesap 1): Aşama 1 planı, Aşama 2 iskeleti, Firestore/Storage kuralları, functions çekirdeği.
 - 2026-10-29 (hesap 1): GitHub deposu bağlandı (sonarmehmet/rotary-connect). `DATA_MODEL.md` ve `TASKS.md` yazıldı; `report_aggregates` kuralı eklendi. Dalga 1 başlayabilir: A=mobil, B=admin, C=backend. Depo şu an public; iş bitince private yapılacak.

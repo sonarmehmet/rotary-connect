@@ -5,11 +5,12 @@ import 'package:rotary_shared/shared.dart';
 
 import '../../../core/router/app_router.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../data/models.dart';
+import '../../../data/providers.dart';
 import '../../../shared/widgets/brand_logo.dart';
 import '../../../shared/widgets/test_data_banner.dart';
 
-/// Aşama 2: yalnızca iskelet. Kampanya/etkinlik/proje kartları Aşama 3'te
-/// eklenecek. Rol bazlı görünürlük kuralı burada gösterilmiştir: aidat
+/// Ana sayfa: kampanya, etkinlik ve haber özeti. Rol bazlı görünürlük kuralı burada gösterilmiştir: aidat
 /// kısayolu yalnızca `viewOwnDues` iznine sahip rollere çizilir.
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -54,14 +55,42 @@ class HomeScreen extends ConsumerWidget {
                     ),
                   ],
                   const SizedBox(height: Gaps.lg),
-                  const Card(
-                    child: Padding(
-                      padding: EdgeInsets.all(Gaps.md),
-                      child: Text(
-                        'Öne çıkan proje, kampanyalar, yaklaşan etkinlikler ve '
-                        'haberler Aşama 3\'te eklenecek.',
-                      ),
-                    ),
+                  _Section(
+                    title: 'Öne çıkan kampanya',
+                    child: ref.watch(campaignsProvider).maybeWhen(
+                          data: (l) {
+                            final a = l.where((c) => c.active).toList();
+                            if (a.isEmpty) return const Text('Şu an aktif kampanya yok.');
+                            final c = a.first;
+                            return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                              Text(c.title, style: Theme.of(context).textTheme.titleMedium),
+                              const SizedBox(height: Gaps.xs),
+                              LinearProgressIndicator(value: c.progress),
+                              Text('${c.verifiedTotal.format()} / ${c.goal.format()}'),
+                            ]);
+                          },
+                          orElse: () => const LinearProgressIndicator(),
+                        ),
+                  ),
+                  _Section(
+                    title: 'Yaklaşan etkinlik',
+                    onTap: () => context.go(Routes.events),
+                    child: ref.watch(eventsProvider).maybeWhen(
+                          data: (l) {
+                            if (l.isEmpty) return const Text('Yaklaşan etkinlik yok.');
+                            final e = ([...l]..sort((a, b) => a.startsAt.compareTo(b.startsAt))).first;
+                            return Text(e.title);
+                          },
+                          orElse: () => const LinearProgressIndicator(),
+                        ),
+                  ),
+                  _Section(
+                    title: 'Son haber',
+                    onTap: () => context.go(Routes.news),
+                    child: ref.watch(newsProvider).maybeWhen(
+                          data: (l) => Text(l.isEmpty ? 'Henüz haber yok.' : l.first.title),
+                          orElse: () => const LinearProgressIndicator(),
+                        ),
                   ),
                 ],
               ),
@@ -71,4 +100,26 @@ class HomeScreen extends ConsumerWidget {
       ),
     );
   }
+}
+
+class _Section extends StatelessWidget {
+  const _Section({required this.title, required this.child, this.onTap});
+  final String title;
+  final Widget child;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) => Card(
+        child: InkWell(
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.all(Gaps.md),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(title, style: Theme.of(context).textTheme.labelLarge),
+              const SizedBox(height: Gaps.xs),
+              child,
+            ]),
+          ),
+        ),
+      );
 }

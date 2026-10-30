@@ -6,14 +6,14 @@ Her hesap işini bitirince kendi bölümünü işaretler.
 
 ## Mobil (Hesap A) — apps/mobile
 - [x] İskelet: tema, yönlendirme, ortam bayrakları, ortak logo/test-verisi bandı
-- [ ] Ana sayfa kartları (kampanya, etkinlik, proje, haber)
-- [ ] Bağış akışı (kategori/kampanya, tutar, bağışçı formu, sonuç)
-- [ ] Etkinlikler (kart, detay, kayıt formu, onay)
-- [ ] Aidat ekranı (borçlar, geçmiş)
-- [ ] Giriş / kayıt / şifre sıfırlama formları
-- [ ] Profil, bildirim tercihleri
-- [ ] Yükleniyor / boş / hata / başarı bileşenleri
-- [ ] Sahte repository'ler (örnek veri)
+- [x] Ana sayfa kartları (kampanya, etkinlik, proje, haber)
+- [x] Bağış akışı (kategori/kampanya, tutar, bağışçı formu, sonuç)
+- [x] Etkinlikler (kart, detay, kayıt formu, onay)
+- [x] Aidat ekranı (borçlar, geçmiş)
+- [x] Giriş / kayıt formları (şifre sıfırlama yalnızca mesaj, Aşama 4)
+- [x] Profil (KVKK silme talebi yalnızca iletişim kutusu; bildirim tercihleri ve bildirim listesi YOK)
+- [x] Yükleniyor / boş / hata / başarı bileşenleri
+- [x] Sahte repository'ler (örnek veri)
 - [ ] Firebase bağlantısı (Aşama 4, ağ gerekir)
 
 ## Admin panel (Hesap B) — apps/admin_web (16 modül)
