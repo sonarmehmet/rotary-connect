@@ -24,6 +24,8 @@ function pay(over: Partial<PaymentDoc>): PaymentDoc {
     simulated: false,
     idempotencyKey: "k",
     manual: false,
+    recordedBy: null,
+    note: null,
     refundedMinor: 0,
     createdAtMs: NOW,
     updatedAtMs: NOW,

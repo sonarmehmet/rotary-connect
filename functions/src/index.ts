@@ -26,3 +26,13 @@ export { buildNotification, shouldSend, dueReminderDue, DEFAULT_PREFS } from "./
 export { planAccountDeletion, anonymizeRecord } from "./privacy/deletion";
 export { FirestoreEventTxRunner, FirestorePaymentTxRunner } from "./adapters/firestoreStores";
 export type { FsDb, FsTx, Clock } from "./adapters/fsTypes";
+export { recordManualPayment } from "./payments/manual";
+export { toCallableError } from "./handlers/callableError";
+export {
+  requireAuth,
+  reserveEventSpotHandler,
+  cancelRegistrationHandler,
+  startDonationHandler,
+  recordManualPaymentHandler,
+} from "./handlers/handlers";
+export type { CallableAuth, AuthContext, AuditSink, CampaignReader, DonationRecorder } from "./handlers/handlers";

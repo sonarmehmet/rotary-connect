@@ -60,6 +60,8 @@ export async function startPayment(
       simulated: false,
       idempotencyKey: key,
       manual: false,
+      recordedBy: null,
+      note: null,
       refundedMinor: 0,
       createdAtMs: input.nowMs,
       updatedAtMs: input.nowMs,

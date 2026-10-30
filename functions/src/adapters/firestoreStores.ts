@@ -81,6 +81,8 @@ function payFrom(s: FsSnap, clock: Clock): PaymentDoc {
     provider: d.provider,
     providerRef: (d.providerRef as string | null | undefined) ?? null,
     simulated: d.simulated, idempotencyKey: d.idempotencyKey, manual: d.manual,
+    recordedBy: (d.recordedBy as string | null | undefined) ?? null,
+    note: (d.note as string | null | undefined) ?? null,
     refundedMinor: d.refundedMinor,
     createdAtMs: d.createdAtMs, updatedAtMs: d.updatedAtMs, succeededAtMs: d.succeededAtMs,
     failureCode: (d.failureCode as string | null | undefined) ?? null,

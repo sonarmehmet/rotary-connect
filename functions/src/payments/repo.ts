@@ -15,6 +15,9 @@ export interface PaymentDoc {
   readonly simulated: boolean;
   readonly idempotencyKey: string;
   readonly manual: boolean;
+  /** Yalnızca manuel ödemelerde: kaydı giren yetkili ve açıklaması (denetlenebilirlik). */
+  readonly recordedBy: string | null;
+  readonly note: string | null;
   readonly refundedMinor: number;
   readonly createdAtMs: number;
   readonly updatedAtMs: number;

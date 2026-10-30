@@ -1,6 +1,7 @@
 import { DomainError } from "../lib/errors";
 import { Role, requireRole } from "../lib/roles";
 import { assertValidMoney } from "../lib/money";
+import { PaymentDoc, PaymentTxRunner } from "./repo";
 
 export interface ManualPaymentInput {
   readonly actorRole: unknown;
@@ -12,6 +13,8 @@ export interface ManualPaymentInput {
   readonly receivedAtMs: number;
   readonly note: string;
   readonly nowMs: number;
+  /** Ödemenin ait olduğu üye/kullanıcı (kullanıcı kendi ödemesini görebilsin diye). */
+  readonly userId?: string | null;
 }
 
 export interface ManualPaymentRecord {
@@ -62,4 +65,42 @@ export function buildManualPayment(i: ManualPaymentInput): ManualPaymentRecord {
     // Aynı ödeme iki kez girilemesin: borç/kayıt + tutar + gün
     idempotencyKey: `manual:${i.kind}:${i.refId}:${i.amountMinor}:${Math.floor(i.receivedAtMs / 86_400_000)}`,
   };
+}
+
+/**
+ * Manuel ödemeyi kalıcılaştırır. Aynı (tür, kayıt, tutar, gün) ikinci kez girilemez.
+ * Not: hedef borcun/bağışın/kaydın güncellenmesi çağıran orkestrasyonun işidir.
+ */
+export async function recordManualPayment(
+  runner: PaymentTxRunner,
+  input: ManualPaymentInput,
+): Promise<PaymentDoc> {
+  const rec = buildManualPayment(input);
+  return runner.run(async (tx) => {
+    const dup = await tx.findByIdempotencyKey(rec.idempotencyKey);
+    if (dup) {
+      throw new DomainError("already-exists", "Bu manuel ödeme zaten kaydedilmiş", "duplicate_manual_payment");
+    }
+    return tx.createPayment({
+      kind: rec.kind,
+      refId: rec.refId,
+      userId: input.userId ?? null,
+      amountMinor: rec.amountMinor,
+      currency: rec.currency,
+      status: "succeeded",
+      provider: "manual",
+      providerRef: null,
+      simulated: false,
+      idempotencyKey: rec.idempotencyKey,
+      manual: true,
+      recordedBy: rec.recordedBy,
+      note: rec.note,
+      refundedMinor: 0,
+      createdAtMs: rec.createdAtMs,
+      updatedAtMs: rec.createdAtMs,
+      succeededAtMs: rec.succeededAtMs,
+      failureCode: null,
+      flag: null,
+    });
+  });
 }

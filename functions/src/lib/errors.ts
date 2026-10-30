@@ -4,6 +4,7 @@
  * `reason` makine tarafından okunabilir ince ayrımdır (ör. "sold_out").
  */
 export type ErrorCode =
+  | "unauthenticated"
   | "permission-denied"
   | "invalid-argument"
   | "failed-precondition"
