@@ -21,7 +21,12 @@ export { processWebhook } from "./payments/webhook";
 export { reconcilePending } from "./payments/reconcile";
 export { aggregateByDay, campaignVerifiedTotal, istanbulDay } from "./reports/aggregates";
 export { constantTimeEqual } from "./lib/safeEqual";
-export { requestMembership, approveMembership, endMembership, assignDues } from "./members/members";
+export {
+  requestMembership,
+  approveMembership as approveMembershipRule,
+  endMembership as endMembershipRule,
+  assignDues as assignDuesRule,
+} from "./members/members";
 export { buildNotification, shouldSend, dueReminderDue, DEFAULT_PREFS } from "./notifications/notifications";
 export { planAccountDeletion, anonymizeRecord } from "./privacy/deletion";
 export { FirestoreEventTxRunner, FirestorePaymentTxRunner } from "./adapters/firestoreStores";
@@ -58,3 +63,7 @@ export { getDonationReceiptHandler, requestAccountDeletionHandler } from "./hand
 export type { Receipt, ReceiptReader, ReceiptRow, DeletionDeps, DeletionFacts, DeletionRequestSink } from "./handlers/userHandlers";
 export { runExpireReservations, runDueMaintenance, runReconcile } from "./jobs/scheduled";
 export type { OpenEventSource, DueSource, DueSink, DueRow, ExpireReport, DueJobReport } from "./jobs/scheduled";
+export { FirestoreAdminTxRunner, FirestoreDuesTxRunner, FirestoreRefundTxRunner, FirestoreExportReader, FirestoreAuditSink } from "./adapters/adminFirestore";
+export type { AuthRolePort } from "./adapters/adminFirestore";
+// Dağıtılan callable'lar (firebase-functions): yönetim paneli.
+export { assignRole, approveMembership, endMembership, assignDues, issueRefund, exportReport } from "./callables";

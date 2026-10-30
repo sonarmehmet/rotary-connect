@@ -11,7 +11,7 @@ function toStoreKey(key: string): string {
   return key.endsWith("Ms") ? key.slice(0, -2) : key;
 }
 
-function encode(obj: Record<string, unknown>, clock: Clock): Record<string, unknown> {
+export function encode(obj: Record<string, unknown>, clock: Clock): Record<string, unknown> {
   const out: Record<string, unknown> = {};
   for (const [k, v] of Object.entries(obj)) {
     if (v === undefined) continue; // Firestore undefined kabul etmez
@@ -71,7 +71,7 @@ function regFrom(s: FsSnap, clock: Clock): RegistrationDoc {
   } as unknown as RegistrationDoc;
 }
 
-function payFrom(s: FsSnap, clock: Clock): PaymentDoc {
+export function payFrom(s: FsSnap, clock: Clock): PaymentDoc {
   const d = decode(requireSnap(s, "ödeme"), clock, PAY_MS);
   return {
     id: s.id,
@@ -133,40 +133,42 @@ export class FirestoreEventTxRunner implements TxRunner {
   }
 }
 
+/** Ödeme erişimini mevcut bir transaction üzerinde kurar (iade gibi başka işlemler de kullanır). */
+export function buildPaymentTx(db: FsDb, clock: Clock, fs: FsTx): PaymentTx {
+  const col = db.collection("payments");
+  const first = async (q: ReturnType<typeof col.where>): Promise<PaymentDoc | null> => {
+    const snaps = await fs.getQuery(q.limit(1));
+    const s = snaps[0];
+    return s ? payFrom(s, clock) : null;
+  };
+  return {
+    async getPayment(id) {
+      const s = await fs.getDoc(col.doc(id));
+      return s.exists ? payFrom(s, clock) : null;
+    },
+    findByIdempotencyKey: (key) => first(col.where("idempotencyKey", "==", key)),
+    findByProviderRef: (ref) => first(col.where("providerRef", "==", ref)),
+    async listPendingCreatedBefore(beforeMs, limit) {
+      const q = col.where("status", "==", "pending").where("createdAt", "<", clock.fromMs(beforeMs)).limit(limit);
+      const snaps = await fs.getQuery(q);
+      return snaps.map((s) => payFrom(s, clock));
+    },
+    async createPayment(d) {
+      const ref = col.doc();
+      fs.set(ref, encode(d as unknown as Record<string, unknown>, clock));
+      return { ...d, id: ref.id };
+    },
+    async updatePayment(id, patch) {
+      fs.update(col.doc(id), encode(patch as Record<string, unknown>, clock));
+    },
+  };
+}
+
 export class FirestorePaymentTxRunner implements PaymentTxRunner {
   constructor(private readonly db: FsDb, private readonly clock: Clock) {}
 
   run<T>(fn: (tx: PaymentTx) => Promise<T>): Promise<T> {
     const { db, clock } = this;
-    return db.runTransaction(async (fs: FsTx) => {
-      const col = db.collection("payments");
-      const first = async (q: ReturnType<typeof col.where>): Promise<PaymentDoc | null> => {
-        const snaps = await fs.getQuery(q.limit(1));
-        const s = snaps[0];
-        return s ? payFrom(s, clock) : null;
-      };
-      const tx: PaymentTx = {
-        async getPayment(id) {
-          const s = await fs.getDoc(col.doc(id));
-          return s.exists ? payFrom(s, clock) : null;
-        },
-        findByIdempotencyKey: (key) => first(col.where("idempotencyKey", "==", key)),
-        findByProviderRef: (ref) => first(col.where("providerRef", "==", ref)),
-        async listPendingCreatedBefore(beforeMs, limit) {
-          const q = col.where("status", "==", "pending").where("createdAt", "<", clock.fromMs(beforeMs)).limit(limit);
-          const snaps = await fs.getQuery(q);
-          return snaps.map((s) => payFrom(s, clock));
-        },
-        async createPayment(d) {
-          const ref = col.doc();
-          fs.set(ref, encode(d as unknown as Record<string, unknown>, clock));
-          return { ...d, id: ref.id };
-        },
-        async updatePayment(id, patch) {
-          fs.update(col.doc(id), encode(patch as Record<string, unknown>, clock));
-        },
-      };
-      return fn(tx);
-    });
+    return db.runTransaction((fs: FsTx) => fn(buildPaymentTx(db, clock, fs)));
   }
 }
