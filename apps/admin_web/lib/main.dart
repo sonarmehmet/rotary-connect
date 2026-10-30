@@ -58,6 +58,17 @@ class _ModuleRoute extends ConsumerWidget {
 
 final adminRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
+    redirect: (context, state) {
+      // Genel Bakış izni olmayan rol (örn. sistem yöneticisi, içerik yöneticisi)
+      // boş "yetkiniz yok" sayfası yerine ilk erişebildiği modüle gider.
+      if (state.matchedLocation != '/') return null;
+      final role = ref.read(adminRoleProvider);
+      final visible = adminModules.where((m) => role.can(m.permission));
+      if (visible.isEmpty || role.can(adminModules.first.permission)) {
+        return null;
+      }
+      return visible.first.path;
+    },
     routes: [
       ShellRoute(
         builder: (context, state, child) => AdminShell(child: child),

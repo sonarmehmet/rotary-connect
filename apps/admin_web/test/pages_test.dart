@@ -130,7 +130,7 @@ void main() {
     testWidgets('Genel Bakış: üç tür ayrı kart, örnek veri uyarısı',
         (tester) async {
       _size(tester, 1400);
-      await _pump(tester, const OverviewPage());
+      await _pump(tester, const OverviewPage(), role: AppRole.financeManager);
       expect(find.text('Bağış'), findsOneWidget);
       expect(find.text('Aidat'), findsOneWidget);
       expect(find.text('Etkinlik ücreti'), findsOneWidget);
@@ -141,7 +141,8 @@ void main() {
 
     testWidgets('Genel Bakış 800 px genişlikte taşmaz', (tester) async {
       _size(tester, 800);
-      await _pump(tester, const OverviewPage());
+      await _pump(tester, const OverviewPage(), role: AppRole.financeManager);
+      expect(find.text('Net (iade düşülmüş)'), findsNWidgets(3));
       expect(tester.takeException(), isNull);
     });
 

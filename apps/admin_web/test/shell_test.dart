@@ -38,4 +38,19 @@ void main() {
     expect(find.text('İadeler'), findsNothing);
     expect(find.text('Rol ve İzinler'), findsNothing);
   });
+
+  testWidgets('Genel Bakış izni olmayan rol ilk erişebildiği modüle yönlenir',
+      (tester) async {
+    tester.view.physicalSize = const Size(1400, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+
+    await tester.pumpWidget(const ProviderScope(child: AdminApp()));
+    await tester.pumpAndSettle();
+
+    // Sistem yöneticisi: '/' yerine 'Kullanıcı ve Üyeler' açılır.
+    expect(find.text('Bu sayfayı görüntüleme yetkiniz yok.'), findsNothing);
+    expect(find.text('Kayıt olmak üye olmak değildir; üyelik yönetici '
+        'onayıyla başlar.'), findsOneWidget);
+  });
 }

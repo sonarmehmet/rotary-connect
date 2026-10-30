@@ -76,7 +76,7 @@ Yazıldı (`apps/admin_web/lib`): `core/` (biçim/İstanbul saati, Türkçe aram
 
 | Tarih | İsteyen | İstek | Durum |
 |---|---|---|---|
-| — | — | — | — |
+| 2026-10-30 | B | Bildirimler ekranı için sözleşme yok: panelden duyuru/bildirim göndermek için `sendAnnouncement` (hedef: tüm/üye/rol, başlık, gövde [tutar/kişisel veri yok], `data.route`) callable'ı ve `notifications` üretimi tanımlansın. `DATA_MODEL.md` callable tablosuna eklenmesi gerekir (şema sahibi: A; sunucu: C). | Açık |
 
 ## Oturum kayıtları
 
@@ -95,3 +95,4 @@ Yazıldı (`apps/admin_web/lib`): `core/` (biçim/İstanbul saati, Türkçe aram
 - 2026-10-30 (hesap B): Dalga 1 admin paneli: ortak `AdminTable` (arama [Türkçe duyarlı], seçenekli filtre, tarih aralığı, sıralama, sayfalama, boş/hata durumu), Genel Bakış (bağış/aidat/etkinlik ayrı kartlar, iade düşülmüş net), liste+form: Kampanyalar, Etkinlikler, Projeler, Haberler/Duyurular; liste+eylem: Aidat (borç atama, manuel ödeme), Ödemeler (iade başlat), İadeler, Denetim, Raporlar (+CSV dışa aktarma arayüzü, `exportFinancialData` bayrağıyla). Veri `AdminRepository` arayüzü + `FakeAdminRepository` (iade üst sınırı, kısmi ödeme, mükerrer işlem kuralları taklit edilir; her ekran `TestDataBanner`lı). Sayaçlar/toplamlar istemciden yazılmaz. DOĞRULANMAMIŞ: hiçbir Flutter komutu çalıştırılamadı (bkz. DOĞRULANMAMIŞ bölümü). Sıradaki (B): kullanıcı makinesinde analyze/test çıktısını düzelt → Dalga 2.
 - 2026-10-30 (hesap B, 2. oturum): Üyeler, Rol ve İzinler, Katılımcı Kayıtları ekranları + sahte depo kuralları + testler. DOĞRULANMAMIŞ (Flutter yok, derlenmedi). Sıradaki (B): kullanıcı makinesinde analyze/test düzeltmeleri; Bildirimler ve Ayarlar; Dalga 2 gerçek depo.
 - 2026-10-30 (hesap B, 3. oturum): Uygulama Ayarları ekranı + sahte depo doğrulaması + testler. DOĞRULANMAMIŞ (Flutter yok). Kalan: Bildirimler (sözleşme bekliyor), kullanıcı makinesinde analyze/test, Dalga 2.
+- 2026-10-30 (hesap B, 4. oturum): Statik tarama: sistem yöneticisinin `viewFinancialReports` izni olmadığı için Genel Bakış testleri finans rolüne çekildi; Genel Bakış izni olmayan roller ('/' açılışında) ilk erişebildikleri modüle yönlendirilir (+test). DOĞRULANMAMIŞ (Flutter yok).
