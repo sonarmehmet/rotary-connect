@@ -74,6 +74,7 @@ Yazıldı (`apps/admin_web/lib`): `core/` (biçim/İstanbul saati, Türkçe aram
 
 | Hesap | Dal | Klasör/modül | Başlangıç |
 |---|---|---|---|
+| B | b/backend-admin-ops | functions/src/handlers/adminOps*.ts, functions/src/lib/csv*.ts (YENİ dosyalar; C'nin dosyalarına yalnız `audit.ts` union'ına 1 satır + `index.ts` sonuna export) — kullanıcı izniyle C'ye yardım | 2026-10-30 |
 | C | c/backend-core | functions, firebase, tests | 2026-10-29 |
 
 ## Değişiklik istekleri (şema/shared için Hesap A'ya)
