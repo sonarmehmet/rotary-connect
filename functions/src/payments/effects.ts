@@ -42,7 +42,7 @@ export interface EffectsTx {
   setMarker(key: string, nowMs: number): void;
   updateDue(id: string, patch: { paidMinor: number; status: DueStatus }): void;
   createDuePayment(r: DuePaymentRecord): void;
-  updateDonation(id: string, patch: { status: "succeeded" | "failed" }): void;
+  updateDonation(id: string, patch: { status: "succeeded" | "failed" | "refunded" | "partially_refunded" }): void;
   updateCampaign(id: string, patch: { verifiedTotalMinor: number; donorCount: number }): void;
 }
 

@@ -298,6 +298,28 @@ describe("issueRefund", () => {
     expect(s.audit[1]).toMatchObject({ before: { refundedMinor: 20000 }, after: { refundedMinor: 50000, status: "refunded" } });
   });
 
+  it("iade sonrası düzeltme çağrılır: tam/kısmi bilgisi ve iade kimliği iletilir", async () => {
+    const s = refundSetup([payment({})]);
+    const calls: { id: string; amount: number; full: boolean; refundId: string }[] = [];
+    const deps = { ...s.deps, onRefunded: async (p: { id: string }, refundId: string, amount: number, full: boolean) => void calls.push({ id: p.id, refundId, amount, full }) };
+    const a = await issueRefundHandler(deps, FIN, body);
+    expect(a.effectsApplied).toBe(true);
+    await issueRefundHandler(deps, FIN, { ...body, amountMinor: 30000 });
+    expect(calls).toEqual([
+      { id: "pay1", refundId: "ref1", amount: 20000, full: false },
+      { id: "pay1", refundId: "ref2", amount: 30000, full: true },
+    ]);
+  });
+
+  it("düzeltme adımı hata verirse iade korunur ve effectsApplied=false döner", async () => {
+    const s = refundSetup([payment({})]);
+    const deps = { ...s.deps, onRefunded: async () => { throw new Error("db"); } };
+    const r = await issueRefundHandler(deps, FIN, body);
+    expect(r).toMatchObject({ refundedMinor: 20000, effectsApplied: false });
+    expect(s.refunds).toHaveLength(1);
+    expect(s.store.get("pay1")?.refundedMinor).toBe(20000);
+  });
+
   it("kalanı aşan iade reddedilir ve hiçbir şey yazmaz", async () => {
     const s = refundSetup([payment({ refundedMinor: 40000, status: "partially_refunded" })]);
     expect(await failure(issueRefundHandler(s.deps, FIN, { ...body, amountMinor: 20000 }))).toBe("invalid-argument:exceeds_remaining");

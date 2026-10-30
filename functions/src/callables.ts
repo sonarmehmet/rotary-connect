@@ -8,6 +8,10 @@ import {
 } from "./handlers/adminOps";
 import { CallableAuth } from "./handlers/handlers";
 import { SECRETS, isLive, iyzico } from "./firebase/payConfig";
+import { FirestoreEffectsTxRunner } from "./adapters/firestoreEffects";
+import { FirestoreEventTxRunner } from "./adapters/firestoreStores";
+import { EventRegistrationService } from "./events/service";
+import { applyRefundEffects } from "./payments/refundEffects";
 import { toCallableError } from "./handlers/callableError";
 
 /**
@@ -24,10 +28,23 @@ function build() {
   const roles = new AdminSdkAuthRoles();
   const audit = new FirestoreAuditSink(db, timestampClock);
   const nowMs = (): number => Date.now();
+  const refundEffects = {
+    runner: new FirestoreEffectsTxRunner(db, timestampClock),
+    events: new EventRegistrationService(new FirestoreEventTxRunner(db, timestampClock)),
+    reservationMinutes: 15,
+    nowMs,
+  };
   return {
     admin: { store: new FirestoreAdminTxRunner(db, timestampClock, roles), audit, nowMs },
     dues: { dues: new FirestoreDuesTxRunner(db, timestampClock), audit, nowMs },
-    refunds: { refunds: new FirestoreRefundTxRunner(db, timestampClock), audit, nowMs },
+    refunds: {
+      refunds: new FirestoreRefundTxRunner(db, timestampClock),
+      audit,
+      nowMs,
+      onRefunded: async (p: import("./payments/repo").PaymentDoc, refundId: string, amount: number, full: boolean) => {
+        await applyRefundEffects(refundEffects, p, refundId, amount, full);
+      },
+    },
     exports: { reader: new FirestoreExportReader(db, timestampClock), audit, nowMs },
   };
 }

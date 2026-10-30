@@ -292,6 +292,11 @@ export interface RefundHandlerDeps {
    * Verilmezse yalnızca simülasyon/manuel ödemeler iade edilebilir.
    */
   readonly providerRefund?: (payment: PaymentDoc, amountMinor: number, idempotencyKey: string) => Promise<void>;
+  /**
+   * İade kaydedildikten SONRA iş kayıtlarını düzeltir (aidat borcu, kampanya toplamı, etkinlik yeri).
+   * Hata verirse iade korunur ve `effectsApplied:false` döner (yeniden denenebilir, idempotent).
+   */
+  readonly onRefunded?: (payment: PaymentDoc, refundId: string, refundMinor: number, full: boolean) => Promise<void>;
   readonly audit: AuditSink;
   readonly nowMs: () => number;
 }
@@ -300,7 +305,7 @@ export async function issueRefundHandler(
   deps: RefundHandlerDeps,
   auth: CallableAuth | null | undefined,
   data: unknown,
-): Promise<{ refundId: string; paymentStatus: string; refundedMinor: number }> {
+): Promise<{ refundId: string; paymentStatus: string; refundedMinor: number; effectsApplied: boolean }> {
   const ctx = requireAuth(auth);
   requireRole(ctx.role, ["finance_manager"]);
   const o = asObject(data, "data");
@@ -350,7 +355,7 @@ export async function issueRefundHandler(
       requestedBy: ctx.uid,
       createdAtMs: nowMs,
     });
-    return { refundId, plan, previous: p.refundedMinor };
+    return { refundId, plan, previous: p.refundedMinor, payment: p };
   });
 
   await writeAudit(deps, {
@@ -363,7 +368,15 @@ export async function issueRefundHandler(
     after: { refundedMinor: out.plan.newRefundedMinor, status: out.plan.nextStatus },
     nowMs,
   });
-  return { refundId: out.refundId, paymentStatus: out.plan.nextStatus, refundedMinor: out.plan.newRefundedMinor };
+  let effectsApplied = true;
+  if (deps.onRefunded) {
+    try {
+      await deps.onRefunded(out.payment, out.refundId, out.plan.refundMinor, out.plan.nextStatus === "refunded");
+    } catch {
+      effectsApplied = false; // iade kaydı geçerli; etki adımı yeniden denenebilir
+    }
+  }
+  return { refundId: out.refundId, paymentStatus: out.plan.nextStatus, refundedMinor: out.plan.newRefundedMinor, effectsApplied };
 }
 
 // ------------------------------------------------------------------ CSV dışa aktarma
