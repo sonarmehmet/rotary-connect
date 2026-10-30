@@ -123,7 +123,7 @@ class _RefundDialogState extends ConsumerState<RefundDialog> {
                 controller: _reason,
                 decoration: fieldDecoration('Gerekçe'),
                 maxLines: 2,
-                validator: requiredText(min: 3, max: 300),
+                validator: requiredText(min: 5, max: 300),
               ),
             ),
             if (_error != null)

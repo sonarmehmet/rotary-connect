@@ -74,7 +74,6 @@ Yazıldı (`apps/admin_web/lib`): `core/` (biçim/İstanbul saati, Türkçe aram
 
 | Hesap | Dal | Klasör/modül | Başlangıç |
 |---|---|---|---|
-| B | b/backend-admin-ops | functions/src/handlers/adminOps*.ts, functions/src/lib/csv*.ts (YENİ dosyalar; C'nin dosyalarına yalnız `audit.ts` union'ına 1 satır + `index.ts` sonuna export) — kullanıcı izniyle C'ye yardım | 2026-10-30 |
 | C | c/backend-core | functions, firebase, tests, apps/mobile (kullanıcı "eksik neresi varsa yardım et" dedi; A hiç push etmedi) | 2026-10-29 |
 
 ## Değişiklik istekleri (şema/shared için Hesap A'ya)
@@ -107,3 +106,4 @@ Yazıldı (`apps/admin_web/lib`): `core/` (biçim/İstanbul saati, Türkçe aram
 - 2026-10-30 (hesap B, 4. oturum): Statik tarama: sistem yöneticisinin `viewFinancialReports` izni olmadığı için Genel Bakış testleri finans rolüne çekildi; Genel Bakış izni olmayan roller ('/' açılışında) ilk erişebildikleri modüle yönlendirilir (+test). DOĞRULANMAMIŞ (Flutter yok).
 - 2026-10-30 (hesap B, 5. oturum): Bildirimler ekranı (`sendAnnouncement`), hata `reason` → Türkçe eşlemesi, hassas içerik denetimi + testler. DOĞRULANMAMIŞ (Flutter yok). Sıradaki (B): kullanıcı makinesinde analyze/test düzeltmeleri; ardından Firebase istemci bağlantısı (Dalga 2: `FirebaseAdminRepository`, claim'den rol, giriş ekranı).
 - 2026-10-30 (hesap B, 6. oturum): Manuel ödeme sunucu sözleşmesine uyduruldu (receivedAt/userId/not≥5, idempotencyKey kalktı), callable istemci katmanı + testler, C'ye eksik callable isteği. DOĞRULANMAMIŞ (Flutter yok). Sıradaki (B): ağ erişimli makinede `cloud_functions`/`firebase_auth`/`cloud_firestore` ekleyip `FirebaseCallableClient`, `FirebaseAdminRepository` (okumalar Firestore), giriş ekranı ve claim'den rol.
+- 2026-10-30 (hesap B, 7. oturum): C'ye yardım: `functions/src/handlers/adminOps.ts` (+test, 27) — `assignRole`, `approveMembership`, `endMembership`, `assignDues`, `issueRefund`, `exportReport` işleyicileri (SDK'dan bağımsız; portlar `AdminTx/DuesTx/RefundTx/ExportReader`), `lib/csv.ts`, `AuditAction`'a `membership.end`, `index.ts` export. TS DOĞRULANDI: `tsc --noEmit` temiz, vitest 175/175. Admin Dart tarafı bu sözleşmeye hizalandı (reason'lar, denetim eylemleri `membership.approve/end`, geçmiş vade, gerekçe ≥5, `AdminCallables` yeni metotlar). DOĞRULANMAMIŞ: Dart derlenmedi/test edilmedi. EKSİK (C): yukarıdaki portların Firestore/Auth adaptörleri ve `onCall` sarmalayıcıları (+`firebase-admin` kurulumu); `functions/package-lock.json` izlenmiyor (karar C'de). Önceki 'eksik callable' isteği B tarafından karşılandı.

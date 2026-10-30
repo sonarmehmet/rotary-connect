@@ -350,7 +350,7 @@ void main() {
       expect(m.memberNo, 'ÜY-0007');
       final u = (await repo.listUsers()).firstWhere((u) => u.id == 'usr_7');
       expect(u.role, AppRole.clubMember);
-      expect((await repo.listAuditLogs()).first.action, 'club_member.approve');
+      expect((await repo.listAuditLogs()).first.action, 'membership.approve');
     });
 
     test('üyelik sonlanınca rol düşer; yalnızca aktif üyelik sonlandırılır',
@@ -472,6 +472,46 @@ void main() {
       expect(
         (await repo.listAuditLogs()).where((a) => a.action == 'announcement.send').length,
         2,
+      );
+    });
+
+    test('sunucu kuralları: üyelik akışı, geçmiş vade, kısa gerekçe, aşan iade', () async {
+      await expectLater(
+        repo.assignRole('usr_1', AppRole.registeredUser),
+        throwsA(
+          isA<AdminException>().having((e) => e.reason, 'reason', 'use_membership_flow'),
+        ),
+      );
+      await expectLater(
+        repo.createDues(
+          NewDuesRequest(
+            periodLabel: '2020-2021',
+            amountMinor: 100000,
+            dueDate: istanbulToInstant(2026, 1, 1),
+            allowPartial: false,
+          ),
+        ),
+        throwsA(
+          isA<AdminException>().having((e) => e.reason, 'reason', 'due_date_in_past'),
+        ),
+      );
+      final p = (await repo.listPayments()).firstWhere((p) => p.id == 'pay_001');
+      await expectLater(
+        repo.issueRefund(
+          RefundRequest(paymentId: p.id, amountMinor: 100, reason: 'abc'),
+        ),
+        throwsCode('invalid-argument'),
+      );
+      // pay_001 üzerinde 10.000 kuruşluk bekleyen iade var: 45.000 kalanı aşar.
+      await expectLater(
+        repo.issueRefund(
+          RefundRequest(paymentId: p.id, amountMinor: 45000, reason: 'çok fazla'),
+        ),
+        throwsA(
+          isA<AdminException>()
+              .having((e) => e.code, 'code', 'invalid-argument')
+              .having((e) => e.reason, 'reason', 'exceeds_remaining'),
+        ),
       );
     });
   });

@@ -47,6 +47,19 @@ const Map<String, String> reasonMessagesTr = {
   'campaign_not_found': 'Kampanya bulunamadı.',
   'registration_not_found': 'Kayıt bulunamadı.',
   'login_required': 'Bu işlem için giriş yapmalısınız.',
+  'user_not_found': 'Kullanıcı bulunamadı.',
+  'member_not_found': 'Üyelik kaydı bulunamadı.',
+  'payment_not_found': 'Ödeme bulunamadı.',
+  'same_role': 'Kullanıcı zaten bu role sahip.',
+  'use_membership_flow':
+      'Üyeliği sonlandırmak için Kullanıcı ve Üyeler ekranını kullanın.',
+  'last_admin': 'Son sistem yöneticisinin rolü değiştirilemez.',
+  'member_no_taken': 'Bu üye numarası zaten kullanılıyor.',
+  'member_not_active': 'Yalnızca aktif üyelere aidat atanır.',
+  'already_assigned': 'Bu dönem için borçlar zaten atanmış.',
+  'provider_refund_unavailable': 'Sağlayıcı iadesi henüz desteklenmiyor.',
+  'too_many_rows': 'Çok fazla satır: tarih aralığını daraltın.',
+  'invalid_range': 'Başlangıç tarihi bitişten sonra olamaz.',
   'sensitive_content':
       'Metin tutar, e-posta veya telefon gibi kişisel/finansal bilgi içeremez.',
 };

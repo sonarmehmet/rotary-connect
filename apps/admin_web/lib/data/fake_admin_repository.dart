@@ -127,13 +127,25 @@ class FakeAdminRepository implements AdminRepository {
       throw const AdminException(
         'invalid-argument',
         'Aidat tutarı sıfırdan büyük olmalı.',
+        'invalid_amount',
+      );
+    }
+    if (!request.dueDate.isAfter(_clock())) {
+      throw const AdminException(
+        'invalid-argument',
+        'Son ödeme tarihi gelecekte olmalı.',
+        'due_date_in_past',
       );
     }
     final targets = request.memberId == null
         ? _members
         : _members.where((m) => m.id == request.memberId).toList();
     if (targets.isEmpty) {
-      throw const AdminException('failed-precondition', 'Üye bulunamadı.');
+      throw const AdminException(
+        'not-found',
+        'Üyelik kaydı bulunamadı.',
+        'member_not_found',
+      );
     }
     final periodId = 'per_${request.periodLabel.replaceAll(' ', '_')}';
     final now = _clock();
@@ -166,6 +178,7 @@ class FakeAdminRepository implements AdminRepository {
       throw const AdminException(
         'already-exists',
         'Bu dönem için borçlar zaten atanmış.',
+        'already_assigned',
       );
     }
     _log(
@@ -310,19 +323,39 @@ class FakeAdminRepository implements AdminRepository {
   Future<void> issueRefund(RefundRequest request) async {
     final index = _payments.indexWhere((p) => p.id == request.paymentId);
     if (index < 0) {
-      throw const AdminException('failed-precondition', 'Ödeme bulunamadı.');
+      throw const AdminException(
+        'not-found',
+        'Ödeme bulunamadı.',
+        'payment_not_found',
+      );
     }
     final payment = _payments[index];
     if (request.amountMinor <= 0) {
       throw const AdminException(
         'invalid-argument',
         'İade tutarı sıfırdan büyük olmalı.',
+        'invalid_amount',
+      );
+    }
+    if (request.reason.trim().length < 5) {
+      throw const AdminException(
+        'invalid-argument',
+        'Gerekçe en az 5 karakter olmalı.',
+        'invalid_reason',
       );
     }
     if (!payment.status.countsAsCollected) {
       throw const AdminException(
         'failed-precondition',
-        'Yalnızca başarılı ödemeler iade edilebilir.',
+        'Bu ödeme iade edilemez.',
+        'not_refundable',
+      );
+    }
+    if (!payment.simulated && !payment.manual) {
+      throw const AdminException(
+        'failed-precondition',
+        'Sağlayıcı iadesi henüz desteklenmiyor.',
+        'provider_refund_unavailable',
       );
     }
     // Sunucu kuralı: bekleyen iadeler de kalan tutardan düşer.
@@ -336,8 +369,9 @@ class FakeAdminRepository implements AdminRepository {
         .fold<int>(0, (sum, r) => sum + r.amountMinor);
     if (request.amountMinor > payment.amountMinor - reserved) {
       throw const AdminException(
-        'failed-precondition',
+        'invalid-argument',
         'İade tutarı iade edilebilir kalan tutarı aşıyor.',
+        'exceeds_remaining',
       );
     }
     final now = _clock();
@@ -404,7 +438,11 @@ class FakeAdminRepository implements AdminRepository {
   int _memberIndex(String memberId) {
     final i = _clubMembers.indexWhere((m) => m.id == memberId);
     if (i < 0) {
-      throw const AdminException('failed-precondition', 'Üye kaydı bulunamadı.');
+      throw const AdminException(
+        'not-found',
+        'Üyelik kaydı bulunamadı.',
+        'member_not_found',
+      );
     }
     return i;
   }
@@ -447,10 +485,15 @@ class FakeAdminRepository implements AdminRepository {
       throw const AdminException(
         'failed-precondition',
         'Yalnızca bekleyen talepler onaylanabilir.',
+        'not_pending',
       );
     }
     if (memberNo.trim().isEmpty) {
-      throw const AdminException('invalid-argument', 'Üye numarası gerekli.');
+      throw const AdminException(
+        'invalid-argument',
+        'Üye numarası gerekli.',
+        'member_no_required',
+      );
     }
     final taken = _clubMembers.any(
       (x) => x.memberNo?.toLowerCase() == memberNo.trim().toLowerCase(),
@@ -459,6 +502,7 @@ class FakeAdminRepository implements AdminRepository {
       throw const AdminException(
         'already-exists',
         'Bu üye numarası zaten kullanılıyor.',
+        'member_no_taken',
       );
     }
     _clubMembers[i] = _copyMember(
@@ -472,7 +516,7 @@ class FakeAdminRepository implements AdminRepository {
       _setRole(m.userId, AppRole.clubMember);
     }
     _log(
-      'club_member.approve',
+      'membership.approve',
       'club_member',
       memberId,
       before: {'status': 'pending'},
@@ -491,6 +535,7 @@ class FakeAdminRepository implements AdminRepository {
       throw const AdminException(
         'failed-precondition',
         'Yalnızca aktif üyelik sonlandırılabilir.',
+        'not_active',
       );
     }
     _clubMembers[i] = _copyMember(m, status: to);
@@ -499,7 +544,7 @@ class FakeAdminRepository implements AdminRepository {
       _setRole(m.userId, AppRole.registeredUser);
     }
     _log(
-      'club_member.end',
+      'membership.end',
       'club_member',
       memberId,
       before: {'status': 'active'},
@@ -514,13 +559,25 @@ class FakeAdminRepository implements AdminRepository {
   Future<void> assignRole(String userId, AppRole role) async {
     final i = _users.indexWhere((u) => u.id == userId);
     if (i < 0) {
-      throw const AdminException('failed-precondition', 'Kullanıcı bulunamadı.');
+      throw const AdminException(
+        'not-found',
+        'Kullanıcı bulunamadı.',
+        'user_not_found',
+      );
     }
     final old = _users[i].role;
     if (old == role) {
       throw const AdminException(
         'failed-precondition',
         'Kullanıcı zaten bu role sahip.',
+        'same_role',
+      );
+    }
+    if (old == AppRole.clubMember && role == AppRole.registeredUser) {
+      throw const AdminException(
+        'failed-precondition',
+        'Üyeliği sonlandırmak için üyelik ekranını kullanın.',
+        'use_membership_flow',
       );
     }
     // Son sistem yöneticisi düşürülemez (panel kilitlenmesini önler).
@@ -529,6 +586,7 @@ class FakeAdminRepository implements AdminRepository {
       throw const AdminException(
         'failed-precondition',
         'Son sistem yöneticisinin rolü değiştirilemez.',
+        'last_admin',
       );
     }
     _setRole(userId, role);

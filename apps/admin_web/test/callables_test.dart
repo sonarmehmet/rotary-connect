@@ -142,6 +142,92 @@ void main() {
     );
   });
 
+  test('yönetim callable gövdeleri sunucu sözleşmesiyle birebir', () async {
+    final client = _RecordingClient({
+      'created': 3,
+      'skipped': 1,
+      'refundId': 'ref_1',
+      'csv': 'x',
+    });
+    final calls = AdminCallables(client);
+
+    await calls.assignRole('usr_1', AppRole.financeManager);
+    expect(client.name, 'assignRole');
+    expect(client.data, {'userId': 'usr_1', 'role': 'finance_manager'});
+
+    await calls.approveMembership('mem_7', ' ÜY-0007 ');
+    expect(client.name, 'approveMembership');
+    expect(client.data, {'memberId': 'mem_7', 'memberNo': 'ÜY-0007'});
+
+    await calls.endMembership('mem_1', MemberStatus.resigned);
+    expect(client.name, 'endMembership');
+    expect(client.data, {'memberId': 'mem_1', 'to': 'resigned'});
+
+    final due = DateTime.utc(2027, 11, 30);
+    final out = await calls.assignDues(
+      NewDuesRequest(
+        periodLabel: ' 2027-2028 ',
+        amountMinor: 150000,
+        dueDate: due,
+        allowPartial: true,
+      ),
+    );
+    expect(out.created, 3);
+    expect(out.skipped, 1);
+    expect(client.name, 'assignDues');
+    expect(client.data, {
+      'periodLabel': '2027-2028',
+      'amountMinor': 150000,
+      'dueDateMs': due.millisecondsSinceEpoch,
+      'allowPartial': true,
+    });
+
+    final id = await calls.issueRefund(
+      const RefundRequest(paymentId: 'pay_1', amountMinor: 500, reason: ' Mükerrer '),
+    );
+    expect(id, 'ref_1');
+    expect(client.data, {'paymentId': 'pay_1', 'amountMinor': 500, 'reason': 'Mükerrer'});
+  });
+
+  test('exportReport: İstanbul gün sınırları ms olarak, aralıksızsa alan yok', () async {
+    final client = _RecordingClient({'csv': '\uFEFFa;b\r\n'});
+    final calls = AdminCallables(client);
+
+    await calls.exportReport(const ExportRequest(kind: ExportKind.payments));
+    expect(client.data, {'kind': 'payments'});
+
+    await calls.exportReport(
+      ExportRequest(
+        kind: ExportKind.dues,
+        range: DateRange(DateTime(2026, 10, 1), DateTime(2026, 10, 31)),
+      ),
+    );
+    expect(client.data!['kind'], 'dues');
+    expect(
+      client.data!['fromMs'],
+      istanbulToInstant(2026, 10, 1).millisecondsSinceEpoch,
+    );
+    // Bitiş: 31 Ekim 23:59:59.999 İstanbul = 1 Kasım 00:00 İstanbul − 1 ms.
+    expect(
+      client.data!['toMs'],
+      istanbulToInstant(2026, 11, 1).millisecondsSinceEpoch - 1,
+    );
+  });
+
+  test('ay sonu aralığı bir sonraki aya taşar (31 Aralık)', () async {
+    final client = _RecordingClient({'csv': 'x'});
+    await AdminCallables(client).exportReport(
+      ExportRequest(
+        kind: ExportKind.refunds,
+        range: DateRange(DateTime(2026, 12, 1), DateTime(2026, 12, 31)),
+      ),
+    );
+    expect(
+      client.data!['toMs'],
+      istanbulToInstant(2027, 1, 1).millisecondsSinceEpoch - 1,
+    );
+  });
+
   group('callableErrorToException', () {
     test('reason details içinden taşınır', () {
       final e = callableErrorToException(

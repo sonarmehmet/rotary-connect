@@ -512,7 +512,7 @@ List<AuditLogEntry> _auditLogs() => [
         id: 'aud_5',
         actorId: 'usr_admin_1',
         actorRole: 'system_admin',
-        action: 'club_member.approve',
+        action: 'membership.approve',
         targetType: 'club_member',
         targetId: 'mem_6',
         before: const {'status': 'pending'},
