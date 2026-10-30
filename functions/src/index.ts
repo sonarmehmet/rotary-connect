@@ -21,3 +21,6 @@ export { processWebhook } from "./payments/webhook";
 export { reconcilePending } from "./payments/reconcile";
 export { aggregateByDay, campaignVerifiedTotal, istanbulDay } from "./reports/aggregates";
 export { constantTimeEqual } from "./lib/safeEqual";
+export { requestMembership, approveMembership, endMembership, assignDues } from "./members/members";
+export { buildNotification, shouldSend, dueReminderDue, DEFAULT_PREFS } from "./notifications/notifications";
+export { planAccountDeletion, anonymizeRecord } from "./privacy/deletion";
