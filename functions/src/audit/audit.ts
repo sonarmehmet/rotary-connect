@@ -4,6 +4,7 @@ export type AuditAction =
   | "refund.issue"
   | "role.assign"
   | "membership.approve"
+  | "membership.end"
   | "due.create"
   | "due.cancel"
   | "event.cancel"

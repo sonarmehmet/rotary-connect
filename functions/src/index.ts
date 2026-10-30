@@ -40,3 +40,12 @@ export { sendAnnouncementHandler, containsSensitive, ANNOUNCE_ROUTES } from "./h
 export type { Audience, RecipientReader, NotificationWriter } from "./handlers/announce";
 export { applyCollected, applyFailed, applyEffects } from "./payments/effects";
 export type { EffectsDeps, EffectsTx, EffectsTxRunner, RefundRequestSink } from "./payments/effects";
+export {
+  assignRoleHandler,
+  approveMembershipHandler,
+  endMembershipHandler,
+  assignDuesHandler,
+  issueRefundHandler,
+  exportReportHandler,
+} from "./handlers/adminOps";
+export type { AdminTx, AdminTxRunner, DuesTx, DuesTxRunner, RefundTx, RefundTxRunner, ExportReader } from "./handlers/adminOps";
