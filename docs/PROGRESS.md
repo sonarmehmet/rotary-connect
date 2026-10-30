@@ -9,8 +9,8 @@
 |---|---|
 | 1 Analiz ve tasarım | ✅ Onaylandı (kullanıcı "Başla" dedi) |
 | 2 Proje iskeleti | ✅ Tamamlandı — Flutter doğrulaması KULLANICI makinesinde bekliyor |
-| 3 UI/UX geliştirmesi | ⏳ Sıradaki |
-| 4 Kimlik doğrulama ve backend | ⬜ |
+| 3 UI/UX geliştirmesi | ⏳ A (mobil) ve B (admin) çalışıyor |
+| 4 Kimlik doğrulama ve backend | 🟡 C: saf iş mantığı hazır (kontenjan, aidat, iade, denetim); Firebase bağlantısı bekliyor |
 | 5 Aidat ve finans | ⬜ |
 | 6 Bağış ve kampanyalar | ⬜ |
 | 7 Etkinlikler ve kayıt | ⬜ |
@@ -55,6 +55,7 @@ Ayrıca `firebase/firestore.rules` emülatörle henüz test edilmedi (Aşama 10'
 | Hesap | Dal | Klasör/modül | Başlangıç |
 |---|---|---|---|
 | B | b/admin-tables | apps/admin_web | 2026-10-29 |
+| C | c/backend-core | functions, firebase, tests | 2026-10-29 |
 
 ## Değişiklik istekleri (şema/shared için Hesap A'ya)
 
@@ -66,3 +67,6 @@ Ayrıca `firebase/firestore.rules` emülatörle henüz test edilmedi (Aşama 10'
 
 - 2026-10-29 (hesap 1): Aşama 1 planı, Aşama 2 iskeleti, Firestore/Storage kuralları, functions çekirdeği.
 - 2026-10-29 (hesap 1): GitHub deposu bağlandı (sonarmehmet/rotary-connect). `DATA_MODEL.md` ve `TASKS.md` yazıldı; `report_aggregates` kuralı eklendi. Dalga 1 başlayabilir: A=mobil, B=admin, C=backend. Depo şu an public; iş bitince private yapılacak.
+- 2026-10-30 (hesap C): Backend çekirdeği (saf iş mantığı, DB'den bağımsız): etkinlik kontenjanı/rezervasyon/bekleme listesi/süre dolumu (`functions/src/events`), aidat durumu ve kısmi ödeme (`dues`), iade planı, sunucu tarafı tutar çözümleme, manuel ödeme, denetim kaydı temizleme. Bellek içi iyimser transaction deposu ile EŞZAMANLI kontenjan testi dahil 50 test geçti (yerel test çatısı; vitest ağ nedeniyle kurulamadı).
+  - DOĞRULANMAMIŞ (C): `firebase-admin`/`firebase-functions` kurulmadı (ağ yok); Firestore transaction adaptörü (`Tx` arayüzünün gerçek uygulaması), callable/HTTP sarmalayıcılar (`src/handlers/`), webhook imza doğrulama, zamanlanmış işler, `tests/rules/` emülatör testleri HENÜZ YOK. İlk olarak ağ erişimli makinede `cd functions && npm install && npm test` ile vitest'te koşturulmalı.
+  - Sıradaki (C): `src/handlers/` sarmalayıcıları + Firestore `Tx` adaptörü + `tests/rules/`.
