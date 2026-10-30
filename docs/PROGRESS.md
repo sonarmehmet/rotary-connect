@@ -69,6 +69,7 @@ Yazıldı (`apps/admin_web/lib`): `core/` (biçim/İstanbul saati, Türkçe aram
 
 | Hesap | Dal | Klasör/modül | Başlangıç |
 |---|---|---|---|
+| B | b/admin-settings | apps/admin_web (settings) | 2026-10-30 |
 | C | c/backend-core | functions, firebase, tests | 2026-10-29 |
 
 ## Değişiklik istekleri (şema/shared için Hesap A'ya)
