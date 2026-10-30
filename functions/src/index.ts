@@ -38,3 +38,5 @@ export {
 export type { CallableAuth, AuthContext, AuditSink, CampaignReader, DonationRecorder } from "./handlers/handlers";
 export { sendAnnouncementHandler, containsSensitive, ANNOUNCE_ROUTES } from "./handlers/announce";
 export type { Audience, RecipientReader, NotificationWriter } from "./handlers/announce";
+export { applyCollected, applyFailed, applyEffects } from "./payments/effects";
+export type { EffectsDeps, EffectsTx, EffectsTxRunner, RefundRequestSink } from "./payments/effects";

@@ -2,8 +2,9 @@ import { buildAuditEntry } from "../audit/audit";
 import { DomainError } from "../lib/errors";
 import { ROLES, Role, requireRole } from "../lib/roles";
 import {
-  NotificationDoc,
+  NotificationItem,
   NotificationPrefs,
+  NotificationWriter,
   buildAnnouncementNotification,
   shouldSend,
 } from "../notifications/notifications";
@@ -39,15 +40,7 @@ export interface RecipientReader {
   page(audience: Audience, cursor: string | null, limit: number): Promise<RecipientPage>;
 }
 
-export interface NotificationItem {
-  readonly id: string;
-  readonly doc: NotificationDoc;
-}
-
-export interface NotificationWriter {
-  /** İdempotent: kimliği zaten var olan bildirime DOKUNMAZ (okundu durumu sıfırlanmaz). */
-  createIfAbsent(items: readonly NotificationItem[]): Promise<void>;
-}
+export type { NotificationItem, NotificationWriter } from "../notifications/notifications";
 
 export interface AnnounceDeps {
   readonly recipients: RecipientReader;

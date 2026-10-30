@@ -122,3 +122,13 @@ export function buildAnnouncementNotification(input: {
     createdAtMs: input.nowMs,
   };
 }
+
+export interface NotificationItem {
+  readonly id: string;
+  readonly doc: NotificationDoc;
+}
+
+export interface NotificationWriter {
+  /** İdempotent: kimliği zaten var olan bildirime DOKUNMAZ (okundu durumu sıfırlanmaz). */
+  createIfAbsent(items: readonly NotificationItem[]): Promise<void>;
+}

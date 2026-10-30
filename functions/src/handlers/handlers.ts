@@ -5,7 +5,7 @@ import { Role, parseRole, requireRole } from "../lib/roles";
 import { DonationLimits, resolveDonationAmount } from "../payments/amounts";
 import { recordManualPayment } from "../payments/manual";
 import { PaymentProvider } from "../payments/provider";
-import { PaymentTxRunner } from "../payments/repo";
+import { PaymentDoc, PaymentTxRunner } from "../payments/repo";
 import { startPayment } from "../payments/startPayment";
 import {
   asBool,
@@ -218,6 +218,12 @@ export interface ManualPaymentDeps {
   readonly payments: PaymentTxRunner;
   readonly audit: AuditSink;
   readonly nowMs: () => number;
+  /**
+   * Ödeme kaydedildikten sonra iş kayıtlarına yansıtma (borç, kampanya toplamı...). Genelde
+   * `applyCollected`. Hata verirse ödeme kaydı KORUNUR ve `effectsApplied: false` döner;
+   * etkiler idempotent olduğundan yeniden denenebilir.
+   */
+  readonly onCollected?: (payment: PaymentDoc) => Promise<unknown>;
 }
 
 /**
@@ -229,7 +235,7 @@ export async function recordManualPaymentHandler(
   deps: ManualPaymentDeps,
   auth: CallableAuth | null | undefined,
   data: unknown,
-): Promise<{ paymentId: string }> {
+): Promise<{ paymentId: string; effectsApplied: boolean }> {
   const ctx = requireAuth(auth);
   requireRole(ctx.role, ["finance_manager"]);
   const o = asObject(data, "data");
@@ -249,6 +255,14 @@ export async function recordManualPaymentHandler(
     actorId: ctx.uid,
     nowMs,
   });
+  let effectsApplied = true;
+  if (deps.onCollected) {
+    try {
+      await deps.onCollected(payment);
+    } catch {
+      effectsApplied = false; // ödeme kaydı kalır; etkiler yeniden denenecek
+    }
+  }
   await deps.audit.write(
     buildAuditEntry({
       actorId: ctx.uid,
@@ -257,9 +271,9 @@ export async function recordManualPaymentHandler(
       targetType: "payment",
       targetId: payment.id,
       before: null,
-      after: { kind: input.kind, refId: input.refId, amountMinor: input.amountMinor, manual: true },
+      after: { kind: input.kind, refId: input.refId, amountMinor: input.amountMinor, manual: true, effectsApplied },
       nowMs,
     }),
   );
-  return { paymentId: payment.id };
+  return { paymentId: payment.id, effectsApplied };
 }
