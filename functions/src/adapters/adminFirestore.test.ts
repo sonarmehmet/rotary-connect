@@ -57,6 +57,14 @@ describe("Firestore adaptörü — yönetim işlemleri", () => {
     expect(db.raw("club_members").find((x) => x.id === "m1")?.data.status).toBe("pending");
   });
 
+  it("rol atanınca users/{uid}.role aynası güncellenir (belge yoksa atlanır)", async () => {
+    const { db, admin } = setup();
+    db.seed("users", "u1", { displayName: "Ali" });
+    await assignRoleHandler(admin, sysAdmin, { userId: "u1", role: "finance_manager" });
+    expect(db.raw("users")[0]?.data).toMatchObject({ displayName: "Ali", role: "finance_manager" });
+    expect(db.raw("users").length).toBe(1);
+  });
+
   it("üyelik sonlandırma claim'i düşürür", async () => {
     const { auth, admin } = setup();
     await approveMembershipHandler(admin, sysAdmin, { memberId: "m1", memberNo: "7" });

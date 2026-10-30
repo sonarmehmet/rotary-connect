@@ -86,8 +86,24 @@ export class FirestoreAdminTxRunner implements AdminTxRunner {
       };
       return fn(tx);
     });
-    for (const c of claims) await auth.setRole(c.userId, c.role);
+    for (const c of claims) {
+      await auth.setRole(c.userId, c.role);
+      await this.mirrorRole(c.userId, c.role);
+    }
     return out;
+  }
+
+  /**
+   * Panelin kullanıcı listesi rolü gösterebilsin diye `users/{uid}.role` aynası yazılır
+   * (kaynak doğruluk Auth claim'idir; ayna yalnızca görüntüleme içindir, istemci yazamaz).
+   * Kullanıcı belgesi yoksa sessizce atlanır.
+   */
+  private async mirrorRole(userId: string, role: Role): Promise<void> {
+    const users = this.db.collection("users");
+    await this.db.runTransaction(async (fs: FsTx) => {
+      const ref = users.doc(userId);
+      if ((await fs.getDoc(ref)).exists) fs.update(ref, { role });
+    });
   }
 }
 

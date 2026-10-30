@@ -11,3 +11,7 @@ final adminUserIdProvider = Provider<String>((ref) => 'usr_demo');
 
 /// Saat kaynağı; testlerde sabitlenebilir.
 final adminClockProvider = Provider<DateTime Function()>((ref) => DateTime.now);
+
+/// Oturumu kapatma eylemi. Örnek veri modunda `null` (düğme gösterilmez);
+/// Firebase girişinde `main_firebase.dart` doldurur.
+final adminSignOutProvider = Provider<Future<void> Function()?>((ref) => null);

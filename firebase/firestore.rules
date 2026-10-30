@@ -18,12 +18,13 @@ service cloud.firestore {
     }
 
     // ---------- Kullanıcı profili ----------
-    // Rol bilgisi belgede tutulmaz (claim'de); kullanıcı kendi rolünü değiştiremez.
+    // Kaynak doğruluk Auth claim'idir. `role` alanı yalnızca Functions'ın yazdığı görüntüleme
+    // aynasıdır (panel kullanıcı listesi); kullanıcı bu alanı oluşturamaz/değiştiremez.
     match /users/{uid} {
       allow read: if isOwner(uid) || isSystemAdmin();
       allow create: if isOwner(uid) && !('role' in request.resource.data);
       allow update: if isOwner(uid)
-        && !('role' in request.resource.data)
+        && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role'])
         && unchanged('email');
       allow delete: if false; // hesap silme Functions üzerinden (KVKK süreci)
     }

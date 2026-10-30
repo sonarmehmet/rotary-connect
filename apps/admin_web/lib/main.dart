@@ -6,6 +6,7 @@ import 'package:rotary_shared/shared.dart';
 
 import 'core/modules.dart';
 import 'core/role_provider.dart';
+import 'data/providers.dart';
 import 'features/audit/audit_page.dart';
 import 'features/campaigns/campaigns_page.dart';
 import 'features/dues/dues_page.dart';
@@ -129,6 +130,8 @@ class AdminShell extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final role = ref.watch(adminRoleProvider);
+    final isSample = ref.watch(adminRepositoryProvider).isSample;
+    final signOut = ref.watch(adminSignOutProvider);
     final visible = adminModules.where((m) => role.can(m.permission)).toList();
     final location = GoRouterState.of(context).matchedLocation;
     final selected = visible.indexWhere((m) => m.path == location);
@@ -147,7 +150,17 @@ class AdminShell extends ConsumerWidget {
         title: const Text('Rotary Connect • Yönetim Paneli'),
         backgroundColor: const Color(BrandColors.navy),
         foregroundColor: Colors.white,
-        bottom: PreferredSize(
+        actions: [
+          if (signOut != null)
+            IconButton(
+              tooltip: 'Çıkış yap',
+              icon: const Icon(Icons.logout),
+              onPressed: () => signOut(),
+            ),
+        ],
+        bottom: !isSample
+            ? null
+            : PreferredSize(
           preferredSize: const Size.fromHeight(22),
           child: Container(
             width: double.infinity,
