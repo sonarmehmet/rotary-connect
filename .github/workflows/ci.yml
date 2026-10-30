@@ -1,0 +1,48 @@
+name: CI
+on:
+  push:
+    branches: [main, "c/**", "b/**", "a/**"]
+  pull_request:
+
+jobs:
+  functions:
+    name: Backend (derleme + vitest)
+    runs-on: ubuntu-latest
+    defaults: { run: { working-directory: functions } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm, cache-dependency-path: functions/package-lock.json }
+      - run: npm ci
+      - run: npm run build
+      - run: npm test
+
+  rules:
+    name: Firestore kuralları (emülatör)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: npm install -g firebase-tools
+      - run: npm install
+        working-directory: tests/rules
+      - run: firebase emulators:exec --only firestore --project demo-rotary "node --test"
+        working-directory: tests/rules
+        env: { FIRESTORE_EMULATOR_HOST: "127.0.0.1:8080" }
+
+  flutter:
+    name: Flutter (${{ matrix.pkg }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        pkg: [packages/shared, apps/mobile, apps/admin_web]
+    defaults: { run: { working-directory: "${{ matrix.pkg }}" } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with: { channel: stable, cache: true }
+      - run: flutter pub get
+      - run: flutter analyze
+      - run: flutter test
