@@ -261,7 +261,9 @@ void main() {
     testWidgets('ayarlar: finans yöneticisi göremez', (tester) async {
       _size(tester, 1400, 1000);
       await _pump(tester, const SettingsPage(), role: AppRole.financeManager);
-      e
+      expect(find.text('Bu sayfayı görüntüleme yetkiniz yok.'), findsOneWidget);
+    });
+
     testWidgets('bildirimler: içerik yöneticisi formu görür, finans göremez',
         (tester) async {
       _size(tester, 1400, 1000);
