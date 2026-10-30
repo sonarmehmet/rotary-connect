@@ -5,11 +5,49 @@ import 'package:go_router/go_router.dart';
 import 'package:rotary_shared/shared.dart';
 
 import 'core/modules.dart';
+import 'core/role_provider.dart';
+import 'features/audit/audit_page.dart';
+import 'features/campaigns/campaigns_page.dart';
+import 'features/dues/dues_page.dart';
+import 'features/events/events_page.dart';
+import 'features/news/news_page.dart';
+import 'features/overview/overview_page.dart';
+import 'features/payments/payments_page.dart';
+import 'features/projects/projects_page.dart';
+import 'features/refunds/refunds_page.dart';
+import 'features/reports/reports_page.dart';
+import 'ui/state_views.dart';
 
-/// Geçici rol durumu (Aşama 4'te Firebase Auth claim'inden okunacak).
-/// Geliştirme kolaylığı için varsayılan sistem yöneticisidir; üretimde
-/// oturum açılmadan panel içeriği gösterilmeyecektir.
-final adminRoleProvider = StateProvider<AppRole>((ref) => AppRole.systemAdmin);
+export 'core/role_provider.dart' show adminRoleProvider;
+
+/// Dalga 1'de uygulanan modüller. Diğerleri (üyeler, roller, kayıtlar,
+/// bildirimler, ayarlar) Dalga 2'de gerçek veriye bağlanırken eklenir.
+const Map<String, Widget> _pages = {
+  '/': OverviewPage(),
+  '/dues': DuesPage(),
+  '/campaigns': CampaignsPage(),
+  '/events': EventsPage(),
+  '/projects': ProjectsPage(),
+  '/news': NewsPage(),
+  '/payments': PaymentsPage(),
+  '/refunds': RefundsPage(),
+  '/reports': ReportsPage(),
+  '/audit': AuditPage(),
+};
+
+/// Rota içeriği: yetkisiz rol sayfayı görmez (gerçek yetki sunucudadır).
+class _ModuleRoute extends ConsumerWidget {
+  const _ModuleRoute({required this.module});
+
+  final AdminModule module;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final role = ref.watch(adminRoleProvider);
+    if (!role.can(module.permission)) return const NoAccessView();
+    return _pages[module.path] ?? _ModulePlaceholder(module: module);
+  }
+}
 
 final adminRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
@@ -20,7 +58,7 @@ final adminRouterProvider = Provider<GoRouter>((ref) {
           for (final m in adminModules)
             GoRoute(
               path: m.path,
-              builder: (_, __) => _ModulePlaceholder(module: m),
+              builder: (_, __) => _ModuleRoute(module: m),
             ),
         ],
       ),
@@ -144,7 +182,7 @@ class _ModulePlaceholder extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Text(
-        '${module.title} modülü Aşama 3 / 9\'da uygulanacak.',
+        '${module.title} modülü Dalga 2\'de gerçek veriye bağlanırken eklenecek.',
         style: Theme.of(context).textTheme.titleMedium,
       ),
     );
