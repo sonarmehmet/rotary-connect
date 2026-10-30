@@ -1,7 +1,6 @@
 # Kontrol Listesi (planlanan işler ve durumu)
 
-`[x]` = kod yazıldı. Ancak Flutter kodu henüz HİÇ derlenmedi/çalıştırılmadı, backend testleri yerel test
-çatısıyla geçti (gerçek vitest ve Firebase henüz denenmedi). Güncel sayılar için: `bash tools/progress.sh`.
+`[x]` = kod yazıldı. DOĞRULAMA (2026-10-31, GitHub Actions `CI`, gerçek ortam): backend derleme+vitest, Firestore kural testleri (emülatör), Flutter analyze+test (shared, mobil, admin) YEŞİL. Hâlâ denenmemiş: iyzico sandbox (ödeme/iade uç noktaları), Firebase'e gerçek bağlantı (emülatör/deploy), mobilin Firebase'e bağlanması. Güncel sayılar için: `bash tools/progress.sh`.
 Her hesap işini bitirince kendi bölümünü işaretler.
 
 ## Mobil (Hesap A) — apps/mobile
