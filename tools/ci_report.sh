@@ -9,9 +9,9 @@ cat "$out"
 if [ $code -ne 0 ]; then
   { grep -E "\(failed\)|^ *error •|Exception|Expected|Actual|\[E\]|FAIL|Failed|Some tests|Could not|Because|version solving|rror:" "$out"
     grep -E "^ *warning •" "$out"
-    grep -A3 -E "EXCEPTION CAUGHT|Expected:" "$out" | grep -vE "^--$|^\s*$"
+    grep -A14 -E "EXCEPTION CAUGHT" "$out" | grep -vE "^--$|^\s*$"
     grep -E "error|Error|failed" "$out" | grep -vE "^ *(error|warning|info) •"
-  } | awk '!seen[$0]++' | head -45 | cut -c1-400 | while IFS= read -r line; do
+  } | awk '!seen[$0]++' | head -60 | cut -c1-400 | while IFS= read -r line; do
       line=${line//'%'/'%25'}; line=${line//$'\r'/}
       echo "::error title=$name::$line"
     done

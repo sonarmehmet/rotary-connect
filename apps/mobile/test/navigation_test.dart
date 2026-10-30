@@ -61,7 +61,9 @@ void main() {
     await tester.tap(find.widgetWithText(NavigationDestination, 'Bağış'));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.widgetWithText(FilledButton, 'Bağış Yap'));
+    final submit = find.widgetWithText(FilledButton, 'Bağış Yap');
+    await tester.dragUntilVisible(submit, find.byType(ListView), const Offset(0, -200));
+    await tester.tap(submit);
     await tester.pumpAndSettle();
     expect(find.text('Geçerli bir tutar girin'), findsOneWidget);
   });
