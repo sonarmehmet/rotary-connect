@@ -4,7 +4,9 @@ import { EventRegistrationService } from "../events/service";
 import { MemoryEffects } from "../testing/memoryEffects";
 import { MemoryStore } from "../testing/memoryStore";
 import { applyCollected } from "./effects";
-import { RefundEffectsDeps, applyRefundEffects } from "./refundEffects";
+import { FakeFirestore, fakeClock } from "../testing/fakeFirestore";
+import { FirestoreRefundSweepSource } from "../adapters/adminFirestore";
+import { RefundEffectsDeps, RefundSweepSource, applyRefundEffects, sweepRefundEffects } from "./refundEffects";
 import { PaymentDoc } from "./repo";
 
 const NOW = 1_800_000_000_000;
@@ -151,5 +153,54 @@ describe("tahsilat → iade döngüsü", () => {
     expect(s.fx.dues.get("due1")?.status).toBe("paid");
     await applyRefundEffects(s.deps, p, "r1", 120_000, true);
     expect(s.fx.dues.get("due1")?.status).toBe("unpaid");
+  });
+});
+
+describe("iade etkisi taraması", () => {
+  it("uygulanmamış iadeyi yakalar, uygulananı çift düşmez; hata diğerlerini durdurmaz", async () => {
+    const { fx, deps } = setup();
+    const rows = [
+      { refundId: "r1", payment: pay({}), refundMinor: 30_000, full: false },
+      { refundId: "r2", payment: pay({ id: "p9", refId: "yok-borc" }), refundMinor: 1_000, full: false },
+    ];
+    const source: RefundSweepSource = { listSucceededSince: async () => rows };
+    const first = await sweepRefundEffects(source, deps, 0, 10);
+    expect(first).toEqual({ checked: 2, applied: 2, errors: 0 });
+    expect(fx.dues.get("due1")?.paidMinor).toBe(90_000);
+    const second = await sweepRefundEffects(source, deps, 0, 10);
+    expect(second.applied).toBe(0);
+    expect(fx.dues.get("due1")?.paidMinor).toBe(90_000);
+
+    const failing: RefundSweepSource = {
+      listSucceededSince: async () => [
+        { refundId: "x", payment: { ...pay({}), get kind(): never { throw new Error("bozuk"); } } as unknown as PaymentDoc, refundMinor: 1, full: false },
+        { refundId: "r3", payment: pay({}), refundMinor: 10_000, full: false },
+      ],
+    };
+    const third = await sweepRefundEffects(failing, deps, 0, 10);
+    expect(third).toEqual({ checked: 2, applied: 1, errors: 1 });
+    expect(fx.dues.get("due1")?.paidMinor).toBe(80_000);
+  });
+
+  it("Firestore kaynağı: kümülatif tam iadeyi doğru hesaplar, başarısız iadeyi atlar", async () => {
+    const db = new FakeFirestore();
+    db.seed("payments", "p1", {
+      kind: "donation", refId: "c1", userId: "u1", amountMinor: 50_000, currency: "TRY", status: "refunded",
+      provider: "simulation", providerRef: null, simulated: false, idempotencyKey: "k", manual: false,
+      recordedBy: null, note: null, refundedMinor: 50_000, createdAt: fakeClock.fromMs(NOW),
+      updatedAt: fakeClock.fromMs(NOW), succeededAt: fakeClock.fromMs(NOW), failureCode: null, flag: null,
+    });
+    const refund = (amount: number, t: number, status = "succeeded") => ({
+      paymentId: "p1", kind: "donation", amountMinor: amount, currency: "TRY", reason: "x", status,
+      requestedBy: "fin1", createdAt: fakeClock.fromMs(t),
+    });
+    db.seed("refunds", "a", refund(20_000, NOW + 1));
+    db.seed("refunds", "b", refund(30_000, NOW + 2));
+    db.seed("refunds", "c", refund(5_000, NOW + 3, "failed"));
+    const rows = await new FirestoreRefundSweepSource(db, fakeClock).listSucceededSince(NOW, 10);
+    const byId = Object.fromEntries(rows.map((r) => [r.refundId, r]));
+    expect(Object.keys(byId).sort()).toEqual(["a", "b"]);
+    expect(byId["a"]).toMatchObject({ refundMinor: 20_000, full: false });
+    expect(byId["b"]).toMatchObject({ refundMinor: 30_000, full: true });
   });
 });

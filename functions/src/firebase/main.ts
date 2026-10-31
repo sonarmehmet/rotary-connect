@@ -20,6 +20,8 @@ import { runDueMaintenance, runExpireReservations, runReconcile } from "../jobs/
 import { DEFAULT_PREFS, NotificationPrefs } from "../notifications/notifications";
 import { EffectsDeps, applyEffects } from "../payments/effects";
 import { handleProviderEvent, sweepEffects } from "../payments/pipeline";
+import { FirestoreRefundSweepSource } from "../adapters/adminFirestore";
+import { sweepRefundEffects } from "../payments/refundEffects";
 import { executeAccountDeletion } from "../privacy/executeDeletion";
 import { requireAuth } from "../handlers/handlers";
 import { IYZICO_SECRET_KEY, SECRETS, activeProvider, isLive, iyzico } from "./payConfig";
@@ -166,6 +168,14 @@ export const jobReconcile = onSchedule({ schedule: "every 10 minutes", timeZone:
 });
 export const jobSweepEffects = onSchedule({ schedule: "every 15 minutes", timeZone: TZ }, async () => {
   await sweepEffects(s.succeeded, effects, nowMs() - 3 * 24 * 3_600_000, 500);
+});
+export const jobSweepRefundEffects = onSchedule({ schedule: "every 30 minutes", timeZone: TZ }, async () => {
+  await sweepRefundEffects(
+    new FirestoreRefundSweepSource(fs, timestampClock),
+    { runner: effects.runner, events: eventSvc, reservationMinutes: RESERVATION_MINUTES, nowMs },
+    nowMs() - 3 * 24 * 3_600_000,
+    500,
+  );
 });
 export const jobProcessDeletions = onSchedule({ schedule: "every 60 minutes", timeZone: TZ }, async () => {
   const open = await db.collection("deletion_requests").where("status", "in", ["open", "blocked"]).limit(50).get();

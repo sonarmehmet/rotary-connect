@@ -5,6 +5,7 @@ import {
   ExportReader, RefundRow, RefundTx, RefundTxRunner,
 } from "../handlers/adminOps";
 import { Role } from "../lib/roles";
+import { RefundSweepRow, RefundSweepSource } from "../payments/refundEffects";
 import { DueAssignment, MemberDoc } from "../members/members";
 import { Clock, FsDb, FsQuery, FsSnap, FsTx } from "./fsTypes";
 import { buildPaymentTx, encode, payFrom } from "./firestoreStores";
@@ -267,6 +268,45 @@ export class FirestoreExportReader implements ExportReader {
         requestedBy: String(d["requestedBy"] ?? ""),
         createdAtMs: clock.toMs(d["createdAt"]),
       };
+    });
+  }
+}
+
+/** İade etkisi taraması kaynağı: `refunds` + ilgili `payments` (kümülatif tam iade hesaplanır). */
+export class FirestoreRefundSweepSource implements RefundSweepSource {
+  constructor(private readonly db: FsDb, private readonly clock: Clock) {}
+
+  async listSucceededSince(sinceMs: number, limit: number): Promise<readonly RefundSweepRow[]> {
+    const { db, clock } = this;
+    return db.runTransaction(async (fs: FsTx) => {
+      const refunds = db.collection(REFUNDS);
+      const recent = await fs.getQuery(refunds.where("createdAt", ">=", clock.fromMs(sinceMs)).limit(limit));
+      const out: RefundSweepRow[] = [];
+      for (const r of recent) {
+        const d = r.data();
+        if (!r.exists || !d || d["status"] !== "succeeded") continue;
+        const paymentId = String(d["paymentId"] ?? "");
+        const ps = await fs.getDoc(db.collection(PAYMENTS).doc(paymentId));
+        if (!ps.exists) continue;
+        const payment = payFrom(ps, clock);
+        const all = await fs.getQuery(refunds.where("paymentId", "==", paymentId));
+        const createdAt = clock.toMs(d["createdAt"]);
+        // Bu iadeye kadar (dahil) kümülatif tutar; eşit zamanlıda kimliğe göre sıralanır.
+        let cumulative = 0;
+        for (const x of all) {
+          const xd = x.data();
+          if (!xd || xd["status"] !== "succeeded") continue;
+          const t = clock.toMs(xd["createdAt"]);
+          if (t < createdAt || (t === createdAt && x.id <= r.id)) cumulative += Number(xd["amountMinor"] ?? 0);
+        }
+        out.push({
+          refundId: r.id,
+          payment,
+          refundMinor: Number(d["amountMinor"] ?? 0),
+          full: cumulative >= payment.amountMinor,
+        });
+      }
+      return out;
     });
   }
 }

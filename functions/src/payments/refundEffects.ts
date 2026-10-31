@@ -88,3 +88,45 @@ async function refundEventFee(
   });
   return "applied";
 }
+
+/** Taramanın kaynağı: son dönemde başarılı iadeler (etkisi uygulanmamış olabilir). */
+export interface RefundSweepRow {
+  readonly refundId: string;
+  readonly payment: PaymentDoc;
+  readonly refundMinor: number;
+  /** Bu iade ile ödemenin TAMAMI iade edilmiş oldu mu (önceki iadeler dahil kümülatif)? */
+  readonly full: boolean;
+}
+
+export interface RefundSweepSource {
+  listSucceededSince(sinceMs: number, limit: number): Promise<readonly RefundSweepRow[]>;
+}
+
+export interface RefundSweepReport {
+  readonly checked: number;
+  readonly applied: number;
+  readonly errors: number;
+}
+
+/**
+ * Zamanlanmış tarama: `effectsApplied:false` dönen veya yarıda kalan iadelerin etkilerini yeniden
+ * uygular. İşaretçi sayesinde zaten uygulananlar `already_applied` olur (çift düşme yok).
+ */
+export async function sweepRefundEffects(
+  source: RefundSweepSource,
+  deps: RefundEffectsDeps,
+  sinceMs: number,
+  limit: number,
+): Promise<RefundSweepReport> {
+  const rows = await source.listSucceededSince(sinceMs, limit);
+  let applied = 0;
+  let errors = 0;
+  for (const r of rows) {
+    try {
+      if ((await applyRefundEffects(deps, r.payment, r.refundId, r.refundMinor, r.full)) === "applied") applied++;
+    } catch {
+      errors++; // bir iade takılırsa diğerleri işlenmeye devam eder
+    }
+  }
+  return { checked: rows.length, applied, errors };
+}
