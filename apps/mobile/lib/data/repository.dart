@@ -14,6 +14,9 @@ abstract class AppRepository {
   Future<UserProfile?> signIn(String email, String password);
   Future<UserProfile> register(String name, String email, String password);
   Future<void> signOut();
+
+  /// Uygulama açılışında kalıcı oturumu geri yükler (yoksa null).
+  Future<UserProfile?> currentUser();
   Future<DonationResult> donate(DonationRequest r);
 
   /// Yer ayırır; ücretli etkinlikte ödeme ayrı adımdır. Doluysa bekleme listesine alır.
@@ -22,6 +25,12 @@ abstract class AppRepository {
 
   /// Ayrılmış yer için etkinlik ücretini öder (sunucu tutarı kayıttan çözer). Simülasyonda anında onaylanır.
   Future<EventItem> payEventFee(String eventId);
+
+  /// Aidat borcunu öder (tutar sunucuda kalan borçtan çözülür). Dönüş: ödeme sayfası adresi (varsa).
+  Future<String?> payDue(String dueId);
+
+  /// KVKK silme talebi. Dönüş: engeller (boşsa talep alındı).
+  Future<List<String>> requestAccountDeletion();
 
   Future<List<AppNotification>> notifications();
   Future<void> markNotificationRead(String id);
@@ -100,7 +109,7 @@ class FakeAppRepository implements AppRepository {
   @override
   Future<List<DueItem>> myDues() async => [
         DueItem(id: 'd1', period: '2026 – 1. Dönem', amount: Money.fromMajor(1500), paid: Money.fromMajor(1500), dueDate: _now.subtract(const Duration(days: 60))),
-        DueItem(id: 'd2', period: '2026 – 2. Dönem', amount: Money.fromMajor(1500), paid: const Money(0), dueDate: _now.subtract(const Duration(days: 5))),
+        DueItem(id: 'd2', period: '2026 – 2. Dönem', amount: Money.fromMajor(1500), paid: _paidDues.contains('d2') ? Money.fromMajor(1500) : const Money(0), dueDate: _now.subtract(const Duration(days: 5))),
       ];
 
   @override
@@ -116,6 +125,20 @@ class FakeAppRepository implements AppRepository {
 
   @override
   Future<void> signOut() async {}
+
+  @override
+  Future<UserProfile?> currentUser() async => null;
+
+  final Set<String> _paidDues = {};
+
+  @override
+  Future<String?> payDue(String dueId) async {
+    _paidDues.add(dueId);
+    return null;
+  }
+
+  @override
+  Future<List<String>> requestAccountDeletion() async => const [];
 
   @override
   Future<DonationResult> donate(DonationRequest r) async {

@@ -111,10 +111,21 @@ class DonationRequest {
 }
 
 class DonationResult {
-  const DonationResult({required this.paymentId, required this.simulated, required this.succeeded});
+  const DonationResult({
+    required this.paymentId,
+    required this.simulated,
+    required this.succeeded,
+    this.checkoutUrl,
+  });
   final String paymentId;
   final bool simulated;
+
+  /// Ödeme kesin olarak tamamlandı. Gerçek sağlayıcıda sonuç webhook ile gelir; ödeme sayfasına
+  /// yönlendirilen kullanıcı için `false` ve [checkoutUrl] doludur (beklemede).
   final bool succeeded;
+  final String? checkoutUrl;
+
+  bool get pending => !succeeded;
 }
 
 class UserProfile {

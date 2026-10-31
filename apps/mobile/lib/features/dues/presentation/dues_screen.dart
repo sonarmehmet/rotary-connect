@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/theme/app_theme.dart';
 import '../../../data/models.dart';
 import '../../../data/providers.dart';
+import '../../../data/repository.dart';
 import '../../../shared/widgets/async_view.dart';
 import '../../../shared/widgets/test_data_banner.dart';
 
@@ -36,7 +38,14 @@ class DuesScreen extends ConsumerWidget {
                     isThreeLine: true,
                     trailing: d.isPaid
                         ? const Chip(label: Text('Ödendi'))
-                        : Chip(label: Text(d.isOverdue(clock) ? 'Gecikmiş' : 'Bekliyor')),
+                        : FilledButton(
+                            onPressed: () async {
+                              final url = await ref.read(repositoryProvider).payDue(d.id);
+                              if (url != null) await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+                              ref.invalidate(duesProvider);
+                            },
+                            child: Text(d.isOverdue(clock) ? 'Öde (gecikmiş)' : 'Öde'),
+                          ),
                   ),
                 ),
             ]),

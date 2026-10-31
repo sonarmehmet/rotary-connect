@@ -6,6 +6,7 @@ import 'package:rotary_shared/shared.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../data/providers.dart';
+import '../../../data/repository.dart';
 import '../../../shared/widgets/test_data_banner.dart';
 
 class ProfileScreen extends ConsumerWidget {
@@ -35,14 +36,7 @@ class ProfileScreen extends ConsumerWidget {
                 leading: const Icon(Icons.delete_outline),
                 title: const Text('Hesabımı ve verilerimi sil (KVKK)'),
                 subtitle: const Text('Talep alınır; yasal saklama yükümlülüğü olan mali kayıtlar silinmez.'),
-                onTap: () => showDialog<void>(
-                  context: context,
-                  builder: (_) => AlertDialog(
-                    title: const Text('Silme talebi'),
-                    content: const Text('Talebiniz kulübe iletilecek (Aşama 4).'),
-                    actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('Tamam'))],
-                  ),
-                ),
+                onTap: () => _requestDeletion(context, ref),
               ),
               const Divider(),
               TextButton(
@@ -58,4 +52,36 @@ class ProfileScreen extends ConsumerWidget {
       ]),
     );
   }
+}
+
+Future<void> _requestDeletion(BuildContext context, WidgetRef ref) async {
+  final ok = await showDialog<bool>(
+    context: context,
+    builder: (_) => AlertDialog(
+      title: const Text('Hesabı sil'),
+      content: const Text('Hesabınız ve kişisel verileriniz silinir. Yasal saklama gereken mali kayıtlar kimliksizleştirilerek tutulur. Devam edilsin mi?'),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Vazgeç')),
+        FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('Talep et')),
+      ],
+    ),
+  );
+  if (ok != true || !context.mounted) return;
+  final blockers = await ref.read(repositoryProvider).requestAccountDeletion();
+  if (!context.mounted) return;
+  const labels = {
+    'pending_payments': 'Tamamlanmamış ödemeniz var',
+    'outstanding_dues': 'Ödenmemiş aidat borcunuz var',
+    'future_event_registrations': 'Gelecek bir etkinlik kaydınız var',
+  };
+  await showDialog<void>(
+    context: context,
+    builder: (_) => AlertDialog(
+      title: Text(blockers.isEmpty ? 'Talep alındı' : 'Şu an silinemez'),
+      content: Text(blockers.isEmpty
+          ? 'Silme talebiniz alındı; işlem kısa süre içinde tamamlanır.'
+          : blockers.map((b) => '• ${labels[b] ?? b}').join('\n')),
+      actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('Tamam'))],
+    ),
+  );
 }

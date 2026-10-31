@@ -28,6 +28,11 @@ class SessionController extends StateNotifier<UserProfile?> {
   Future<void> register(String name, String email, String password) async =>
       _set(await _ref.read(repositoryProvider).register(name, email, password));
 
+  Future<void> restore() async {
+    final u = await _ref.read(repositoryProvider).currentUser();
+    if (u != null) _set(u);
+  }
+
   Future<void> signOut() async {
     await _ref.read(repositoryProvider).signOut();
     state = null;

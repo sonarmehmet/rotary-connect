@@ -17,8 +17,12 @@ dependencies:
   go_router: ">=14.0.0 <18.0.0"
   rotary_shared:
     path: ../../packages/shared
-  # Firebase paketleri Aşama 4'te eklenecek (firebase_core, firebase_auth,
-  # cloud_firestore, firebase_messaging, cloud_functions).
+  firebase_core: ^3.0.0
+  firebase_auth: ^5.0.0
+  cloud_firestore: ^5.0.0
+  cloud_functions: ^5.0.0
+  url_launcher: ^6.2.0
+  # firebase_messaging (anlık bildirim) Aşama 9'da eklenecek.
 
 dev_dependencies:
   flutter_test:

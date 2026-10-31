@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:rotary_shared/shared.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/theme/app_theme.dart';
 import '../../../data/models.dart';
@@ -48,17 +49,24 @@ class _DonateScreenState extends ConsumerState<DonateScreen> {
             clientKey: _clientKey,
           ));
       if (!mounted) return;
+      final url = res.checkoutUrl;
+      if (res.pending && url != null) {
+        await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+      }
+      if (!mounted) return;
       await showDialog<void>(
         context: context,
         builder: (_) => AlertDialog(
-          title: Text(res.succeeded ? 'Teşekkürler!' : 'Ödeme tamamlanamadı'),
+          title: Text(res.succeeded ? 'Teşekkürler!' : 'Ödeme bekleniyor'),
           content: Text(res.succeeded
               ? (res.simulated ? 'Bu bir SİMÜLASYON bağışıdır; gerçek tahsilat yapılmadı.' : 'Bağışınız alındı.')
-              : 'Ödeme alınamadı. Kartınızdan çekim yapılmadıysa tekrar deneyebilirsiniz.'),
+              : (url != null
+                  ? 'Ödeme sayfası açıldı. Ödeme tamamlanınca bağışınız onaylanır ve bildirim alırsınız.'
+                  : 'Bağışınız kaydedildi; ödeme sonucu bekleniyor. Simülasyon modunda sonuç yönetici tarafından verilir.')),
           actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('Tamam'))],
         ),
       );
-      if (res.succeeded) {
+      if (res.succeeded || res.pending) {
         _amount.clear();
         _clientKey = 'k${DateTime.now().microsecondsSinceEpoch}';
         ref.invalidate(campaignsProvider);
