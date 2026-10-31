@@ -65,6 +65,7 @@ function callable<T>(fn: (auth: CallableAuth | null, data: unknown) => Promise<T
     try {
       return await fn(toAuth(req), req.data);
     } catch (e) {
+      if (e instanceof HttpsError) throw e; // doğrudan fırlatılan HttpsError olduğu gibi gider
       const c = toCallableError(e);
       if (c.code === "internal") console.error("callable hatası", e instanceof Error ? e.message : "bilinmiyor");
       throw new HttpsError(c.code, c.message, { reason: c.reason });
