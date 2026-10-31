@@ -33,3 +33,10 @@ cd ../../functions && npm install && npm test
 - Ödeme sağlayıcısı henüz seçilmedi: tüm ödemeler **simülasyondur**.
 - Hukuki metinler (KVKK, gizlilik, iade) hukuk danışmanı ve mali müşavir onayı gerektirir.
 - Çoklu hesapla geliştirme için `docs/AGENT_PROMPT.md` ve `docs/PROGRESS.md` dosyalarına bakın.
+
+## Hızlı çalıştırma (örnek veriyle, Firebase gerekmez)
+```
+cd apps/admin_web && flutter pub get && flutter run -d chrome   # yönetim paneli
+cd apps/mobile    && flutter pub get && flutter run -d chrome   # mobil uygulama (veya telefon/emülatör)
+```
+Gerçek Firebase için: `flutterfire configure`, sonra `flutter run -t lib/main_firebase.dart`.
