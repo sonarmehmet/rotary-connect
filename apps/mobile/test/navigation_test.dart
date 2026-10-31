@@ -69,4 +69,12 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Geçerli bir tutar girin'), findsOneWidget);
   });
+
+  testWidgets('oturum geri yükleme: kayıtlı kullanıcı yoksa ziyaretçi kalır', (tester) async {
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+    await container.read(sessionProvider.notifier).restore();
+    expect(container.read(sessionProvider), isNull);
+    expect(container.read(currentRoleProvider), AppRole.visitor);
+  });
 }

@@ -64,4 +64,20 @@ void main() {
     expect(q.dues, isFalse);
     expect(q.events, isTrue);
   });
+
+  test('aidat ödemesi borcu kapatır; silme talebi engelsiz kabul edilir; oturum yoksa currentUser null', () async {
+    final r = FakeAppRepository();
+    expect((await r.myDues()).where((d) => d.isPaid).length, 1);
+    expect(await r.payDue('d2'), isNull);
+    expect((await r.myDues()).every((d) => d.isPaid), isTrue);
+    expect(await r.requestAccountDeletion(), isEmpty);
+    expect(await r.currentUser(), isNull);
+  });
+
+  test('bağış sonucu: tamamlanmayan ödeme beklemede sayılır', () {
+    const pending = DonationResult(paymentId: 'p', simulated: false, succeeded: false, checkoutUrl: 'https://x');
+    expect(pending.pending, isTrue);
+    const done = DonationResult(paymentId: 'p', simulated: true, succeeded: true);
+    expect(done.pending, isFalse);
+  });
 }
