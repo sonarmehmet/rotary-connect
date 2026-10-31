@@ -85,7 +85,9 @@ class AdminCallables {
   }
 
   /// `issueRefund` (yalnızca finans yöneticisi).
-  Future<String> issueRefund(RefundRequest r) async {
+  Future<({String refundId, bool effectsApplied})> issueRefund(
+    RefundRequest r,
+  ) async {
     final out = await _client.call('issueRefund', {
       'paymentId': r.paymentId,
       'amountMinor': r.amountMinor,
@@ -95,7 +97,8 @@ class AdminCallables {
     if (id is! String || id.isEmpty) {
       throw StateError('issueRefund: refundId eksik');
     }
-    return id;
+    // Eski sunucu sürümü alanı göndermezse düzeltmeler uygulanmış sayılır.
+    return (refundId: id, effectsApplied: out['effectsApplied'] != false);
   }
 
   /// `exportReport` (yalnızca finans yöneticisi). Tarih aralığı İstanbul

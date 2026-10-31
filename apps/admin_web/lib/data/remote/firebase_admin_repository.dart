@@ -411,6 +411,7 @@ class FirebaseAdminRepository implements AdminRepository {
             createdAt: _tsOr(m['createdAt'], _epoch),
             updatedAt: _tsOr(m['updatedAt'], _epoch),
             succeededAt: _ts(m['succeededAt']),
+            flag: _strOrNull(m['flag']),
           );
         }(),
     ];
@@ -478,9 +479,8 @@ class FirebaseAdminRepository implements AdminRepository {
   }
 
   @override
-  Future<void> issueRefund(RefundRequest r) async {
-    await _calls.issueRefund(r);
-  }
+  Future<bool> issueRefund(RefundRequest r) async =>
+      (await _calls.issueRefund(r)).effectsApplied;
 
   // ------------------------------------------------------------ üyelik / roller
 

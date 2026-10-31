@@ -381,7 +381,7 @@ class FakeAdminRepository implements AdminRepository {
   Future<List<RefundRecord>> listRefunds() async => List.of(_refunds);
 
   @override
-  Future<void> issueRefund(RefundRequest request) async {
+  Future<bool> issueRefund(RefundRequest request) async {
     final index = _payments.indexWhere((p) => p.id == request.paymentId);
     if (index < 0) {
       throw const AdminException(
@@ -489,6 +489,37 @@ class FakeAdminRepository implements AdminRepository {
       before: {'refundedMinor': payment.refundedMinor},
       after: {'refundedMinor': refundedTotal},
     );
+    // Sunucu davranışı: aidat iadesi borcu yeniden açar (ödenen tutar düşer).
+    if (payment.kind == PaymentKind.membershipDue) {
+      final di = _dues.indexWhere((d) => d.id == payment.refId);
+      if (di >= 0) {
+        final d = _dues[di];
+        final paid = d.paidMinor - request.amountMinor;
+        final left = paid < 0 ? 0 : paid;
+        _dues[di] = MembershipDue(
+          id: d.id,
+          userId: d.userId,
+          userName: d.userName,
+          memberId: d.memberId,
+          periodId: d.periodId,
+          periodLabel: d.periodLabel,
+          amountMinor: d.amountMinor,
+          currency: d.currency,
+          paidMinor: left,
+          dueDate: d.dueDate,
+          status: left >= d.amountMinor
+              ? DueStatus.paid
+              : left > 0
+                  ? DueStatus.partiallyPaid
+                  : d.dueDate.isBefore(now)
+                      ? DueStatus.overdue
+                      : DueStatus.unpaid,
+          allowPartial: d.allowPartial,
+          createdAt: d.createdAt,
+        );
+      }
+    }
+    return true;
   }
 
   // --- Üyelik, roller, etkinlik kayıtları ------------------------------------

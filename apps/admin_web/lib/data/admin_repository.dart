@@ -55,8 +55,10 @@ abstract class AdminRepository {
 
   Future<List<RefundRecord>> listRefunds();
 
-  /// `issueRefund` callable'ı.
-  Future<void> issueRefund(RefundRequest request);
+  /// `issueRefund` callable'ı. Dönüş: iade sonrası kayıt düzeltmeleri
+  /// (aidat borcu, kampanya toplamı, etkinlik yeri) uygulandı mı? `false` ise
+  /// iade KAYDEDİLMİŞTİR ancak düzeltmeler sunucuda yeniden denenmelidir.
+  Future<bool> issueRefund(RefundRequest request);
 
   // --- Üyelik, roller, etkinlik kayıtları ---
   Future<List<ClubMember>> listClubMembers();

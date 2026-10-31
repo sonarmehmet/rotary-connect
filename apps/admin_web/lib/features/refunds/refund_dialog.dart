@@ -58,7 +58,8 @@ class _RefundDialogState extends ConsumerState<RefundDialog> {
       _error = null;
     });
     try {
-      await ref.read(adminRepositoryProvider).issueRefund(
+      final effectsApplied =
+          await ref.read(adminRepositoryProvider).issueRefund(
             RefundRequest(
               paymentId: widget.payment.id,
               amountMinor: amount.minor,
@@ -67,10 +68,18 @@ class _RefundDialogState extends ConsumerState<RefundDialog> {
           );
       invalidateFinance(ref);
       ref.invalidate(campaignsProvider);
+      ref.invalidate(duesProvider);
       if (mounted) {
         Navigator.of(context).pop(true);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('İade kaydedildi.')),
+          SnackBar(
+            content: Text(
+              effectsApplied
+                  ? 'İade kaydedildi.'
+                  : 'İade kaydedildi; ancak aidat/kampanya/etkinlik '
+                      'düzeltmeleri tamamlanamadı. Sistem yöneticisine bildirin.',
+            ),
+          ),
         );
       }
     } catch (e) {

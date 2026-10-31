@@ -386,6 +386,7 @@ class PaymentRecord {
     this.failureCode,
     this.refundedMinor = 0,
     this.succeededAt,
+    this.flag,
   });
 
   final String id;
@@ -407,6 +408,12 @@ class PaymentRecord {
   final DateTime createdAt;
   final DateTime updatedAt;
   final DateTime? succeededAt;
+
+  /// Şüpheli durum (örn. `amount_mismatch`): tahsilat sayılmaz, insan incelemesi
+  /// gerekir. Sunucu yazar.
+  final String? flag;
+
+  bool get isFlagged => flag != null;
 
   /// Bu ödemeden iade edilebilecek en çok tutar (sunucu kuralı belirleyicidir).
   int get refundableMinor => amountMinor - refundedMinor;

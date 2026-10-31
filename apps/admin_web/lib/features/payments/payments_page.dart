@@ -61,6 +61,12 @@ class PaymentsPage extends ConsumerWidget {
                 FilterOption<PaymentRecord>('Çevrimiçi', (p) => !p.manual),
               ],
             ),
+            TableFilter<PaymentRecord>(
+              label: 'İnceleme',
+              options: [
+                FilterOption<PaymentRecord>('İnceleme gerekli', (p) => p.isFlagged),
+              ],
+            ),
           ],
           columns: [
             AdminColumn<PaymentRecord>(
@@ -93,6 +99,16 @@ class PaymentsPage extends ConsumerWidget {
               text: (p) => '${p.manual ? 'Manuel' : 'Çevrimiçi'}'
                   '${p.simulated ? ' (simülasyon)' : ''}',
             ),
+            AdminColumn<PaymentRecord>(
+              label: 'İnceleme',
+              text: (p) => p.isFlagged ? 'Gerekli' : '',
+              cell: (_, p) => p.isFlagged
+                  ? const StatusChip(
+                      label: 'İnceleme gerekli',
+                      tone: StatusTone.warning,
+                    )
+                  : const SizedBox.shrink(),
+            ),
           ],
         ),
       ),
@@ -114,6 +130,8 @@ class PaymentsPage extends ConsumerWidget {
         ('Manuel kayıt', p.manual ? 'Evet' : 'Hayır'),
         if (p.note != null) ('Not', p.note!),
         if (p.failureCode != null) ('Hata kodu', p.failureCode!),
+        if (p.flag != null)
+          ('İnceleme', 'Gerekli (${p.flag}) — tahsilat sayılmaz'),
         ('Oluşturma', formatDateTime(p.createdAt)),
         ('Başarı zamanı', formatDateTime(p.succeededAt)),
       ],

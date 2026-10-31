@@ -546,4 +546,30 @@ void main() {
           .having((e) => e.reason, 'reason', 'due_has_payments')),
     );
   });
+
+  test('aidat iadesi borcu yeniden açar ve düzeltme uygulandı bilgisini döner',
+      () async {
+    final repo = FakeAdminRepository();
+    final payments = await repo.listPayments();
+    final candidates = payments.where(
+      (x) =>
+          x.kind == PaymentKind.membershipDue &&
+          (x.simulated || x.manual) &&
+          x.isRefundable,
+    );
+    if (candidates.isEmpty) return; // örnek veride uygun ödeme yoksa atla
+    final p = candidates.first;
+    final before = (await repo.listDues()).firstWhere((d) => d.id == p.refId);
+    final applied = await repo.issueRefund(
+      RefundRequest(
+        paymentId: p.id,
+        amountMinor: p.refundableMinor,
+        reason: 'Yanlış tahsilat',
+      ),
+    );
+    expect(applied, isTrue);
+    final after = (await repo.listDues()).firstWhere((d) => d.id == p.refId);
+    final expected = before.paidMinor - p.refundableMinor;
+    expect(after.paidMinor, expected < 0 ? 0 : expected);
+  });
 }

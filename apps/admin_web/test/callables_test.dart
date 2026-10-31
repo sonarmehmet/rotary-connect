@@ -186,10 +186,11 @@ void main() {
       'allowPartial': true,
     });
 
-    final id = await calls.issueRefund(
+    final res = await calls.issueRefund(
       const RefundRequest(paymentId: 'pay_1', amountMinor: 500, reason: ' Mükerrer '),
     );
-    expect(id, 'ref_1');
+    expect(res.refundId, 'ref_1');
+    expect(res.effectsApplied, isTrue);
     expect(client.data, {'paymentId': 'pay_1', 'amountMinor': 500, 'reason': 'Mükerrer'});
   });
 
