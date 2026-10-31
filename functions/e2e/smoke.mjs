@@ -33,7 +33,12 @@ async function call(name, data, token) {
   return body.error ? { error: body.error } : { ok: body.result };
 }
 
-const step = async (name, fn) => { await fn(); console.log("  ok  ", name); };
+const step = async (name, fn) => {
+  try { await fn(); console.log("  ok  ", name); }
+  catch (e) { console.log(`Error: ADIM BAŞARISIZ [${name}] ${String(e?.message ?? e).replace(/\s+/g, " ").slice(0, 600)}`); process.exit(1); }
+};
+process.on("uncaughtException", (e) => { console.log(`Error: BEKLENMEYEN ${String(e?.stack ?? e).replace(/\s+/g, " ").slice(0, 800)}`); process.exit(1); });
+process.on("unhandledRejection", (e) => { console.log(`Error: REDDEDİLEN ${String(e?.stack ?? e).replace(/\s+/g, " ").slice(0, 800)}`); process.exit(1); });
 
 const FUTURE = Timestamp.fromMillis(Date.now() + 7 * 86_400_000);
 await db.collection("events").doc("ev1").set({
