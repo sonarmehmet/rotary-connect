@@ -1,11 +1,11 @@
 {
-    "name": "rotary_mobile",
-    "short_name": "rotary_mobile",
+    "name": "Rotary Connect",
+    "short_name": "Rotary Connect",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#FFFFFF",
+    "theme_color": "#0B2A5B",
+    "description": "Rotary kulübü bağış, etkinlik ve aidat uygulaması.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
@@ -31,5 +31,6 @@
             "type": "image/png",
             "purpose": "maskable"
         }
-    ]
+    ],
+    "lang": "tr"
 }

@@ -1,0 +1,65 @@
+name: build-apps
+# Elle çalıştırılır (Actions → build-apps → Run workflow). Çıktılar "Artifacts" bölümünden indirilir.
+# Mobil uygulama henüz Firebase'e bağlı değil: örnek veriyle derlenir. Admin paneli için
+# gerçek Firebase sürümü istenirse FIREBASE_* sırları (Settings → Secrets → Actions) tanımlanmalı.
+on: workflow_dispatch
+jobs:
+  admin-web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with: { channel: stable }
+      - name: Derle (Firebase sırları varsa gerçek, yoksa örnek veri)
+        working-directory: apps/admin_web
+        env:
+          FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
+          FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
+          FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+          FIREBASE_AUTH_DOMAIN: ${{ secrets.FIREBASE_AUTH_DOMAIN }}
+          FIREBASE_SENDER_ID: ${{ secrets.FIREBASE_SENDER_ID }}
+        run: |
+          flutter pub get
+          if [ -n "$FIREBASE_API_KEY" ] && [ -n "$FIREBASE_PROJECT_ID" ]; then
+            flutter build web --release -t lib/main_firebase.dart \
+              --dart-define=FIREBASE_API_KEY="$FIREBASE_API_KEY" \
+              --dart-define=FIREBASE_APP_ID="$FIREBASE_APP_ID" \
+              --dart-define=FIREBASE_PROJECT_ID="$FIREBASE_PROJECT_ID" \
+              --dart-define=FIREBASE_AUTH_DOMAIN="$FIREBASE_AUTH_DOMAIN" \
+              --dart-define=FIREBASE_SENDER_ID="$FIREBASE_SENDER_ID"
+          else
+            echo "Firebase sırları yok: ÖRNEK VERİ sürümü derleniyor."
+            flutter build web --release
+          fi
+      - uses: actions/upload-artifact@v4
+        with: { name: admin-web, path: apps/admin_web/build/web }
+
+  mobile-android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: "17" }
+      - uses: subosito/flutter-action@v2
+        with: { channel: stable }
+      - name: APK derle (debug anahtarıyla imzalı; mağaza için değil)
+        working-directory: apps/mobile
+        run: |
+          flutter pub get
+          flutter build apk --release
+      - uses: actions/upload-artifact@v4
+        with: { name: mobile-android-apk, path: apps/mobile/build/app/outputs/flutter-apk/app-release.apk }
+
+  mobile-ios:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with: { channel: stable }
+      - name: iOS derle (imzasız; cihazda çalışması için Xcode + Apple hesabı gerekir)
+        working-directory: apps/mobile
+        run: |
+          flutter pub get
+          flutter build ios --release --no-codesign
+      - uses: actions/upload-artifact@v4
+        with: { name: mobile-ios-unsigned, path: apps/mobile/build/ios/iphoneos/Runner.app }
