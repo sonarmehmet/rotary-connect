@@ -35,3 +35,4 @@ firebase-debug.log
 .idea/
 .vscode/
 .DS_Store
+functions/.secret.local

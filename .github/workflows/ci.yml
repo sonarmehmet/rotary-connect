@@ -33,6 +33,22 @@ jobs:
         working-directory: tests/rules
         env: { FIRESTORE_EMULATOR_HOST: "127.0.0.1:8080" }
 
+  e2e:
+    name: Emülatör uçtan uca (callable'lar)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm, cache-dependency-path: functions/package-lock.json }
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: 21 }
+      - run: npm install -g firebase-tools
+      - run: npm ci && npm run build
+        working-directory: functions
+      - name: Emülatör gizli değerleri (sahte)
+        run: printf 'IYZICO_API_KEY=x\nIYZICO_SECRET_KEY=y\n' > functions/.secret.local
+      - run: bash tools/ci_report.sh e2e firebase emulators:exec --only functions,firestore,auth --project demo-rotary "node functions/e2e/smoke.mjs"
+
   flutter:
     name: Flutter (${{ matrix.pkg }})
     runs-on: ubuntu-latest
