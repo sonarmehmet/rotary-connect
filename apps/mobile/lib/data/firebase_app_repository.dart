@@ -150,7 +150,7 @@ class FirebaseAppRepository implements AppRepository {
   Future<UserProfile?> signIn(String email, String password) async {
     try {
       final c = await _auth.signInWithEmailAndPassword(email: email, password: password);
-      return _profileOf(c.user!);
+      return await _profileOf(c.user!);
     } on FirebaseAuthException {
       return null; // hesap var/yok bilgisi sızdırılmaz
     }
