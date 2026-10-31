@@ -1,0 +1,46 @@
+name: scaffold-platforms
+on: workflow_dispatch
+jobs:
+  scaffold:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with: { channel: stable }
+      - name: Platform klasörlerini üret
+        run: |
+          set -e
+          flutter --version
+          (cd apps/mobile && flutter create . --project-name rotary_mobile --org com.rotaryconnect --platforms=android,ios,web,windows,macos,linux --no-overwrite)
+          (cd apps/admin_web && flutter create . --project-name rotary_admin_web --org com.rotaryconnect --platforms=web,android,ios,windows,macos,linux --no-overwrite)
+          # Firebase eklentileri için minimum sürümler
+          for d in apps/mobile apps/admin_web; do
+            for f in $d/android/app/build.gradle $d/android/app/build.gradle.kts; do
+              [ -f "$f" ] && sed -i.bak -E 's/minSdk(Version)?( =|=)? *(flutter\.minSdkVersion|[0-9]+)/minSdk = 23/' "$f" && rm -f "$f.bak"
+            done
+            [ -f $d/ios/Podfile ] && sed -i.bak -E "s/^# platform :ios.*/platform :ios, '13.0'/" $d/ios/Podfile && rm -f $d/ios/Podfile.bak
+          done
+          grep -rn "minSdk" apps/*/android/app/build.gradle* || true
+          grep -n "platform :ios" apps/*/ios/Podfile || true
+          rm -rf apps/*/test/widget_test.dart
+      - uses: actions/upload-artifact@v4
+        with:
+          name: platforms
+          path: |
+            apps/mobile/android
+            apps/mobile/ios
+            apps/mobile/web
+            apps/mobile/windows
+            apps/mobile/macos
+            apps/mobile/linux
+            apps/mobile/.metadata
+            apps/mobile/pubspec.yaml
+            apps/admin_web/android
+            apps/admin_web/ios
+            apps/admin_web/web
+            apps/admin_web/windows
+            apps/admin_web/macos
+            apps/admin_web/linux
+            apps/admin_web/.metadata
+            apps/admin_web/pubspec.yaml
+          include-hidden-files: true
